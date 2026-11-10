@@ -1,0 +1,47 @@
+# Render Blueprint: one always-on Web Service + one Cron Job, both built from the same Dockerfile.
+# After the first deploy, fill every `sync: false` value in the Render dashboard (Environment Group "af-secrets").
+envVarGroups:
+  - name: af-secrets
+    envVars:
+      - { key: APP_URL, sync: false }                         # e.g. https://af-money-safer.onrender.com (no trailing slash)
+      - { key: APP_SECRET, sync: false }                      # openssl rand -hex 32
+      - { key: FIREBASE_PROJECT_ID, sync: false }
+      - { key: FIREBASE_WEB_API_KEY, sync: false }
+      - { key: FIREBASE_SERVICE_ACCOUNT_JSON_B64, sync: false }   # base64 -w0 service-account.json
+      - { key: TASHPAY_ACCOUNT, sync: false }
+      - { key: TASHPAY_API_KEY, sync: false }
+      - { key: TASHPAY_DEPOSIT_NOTIFY_URL, sync: false }      # APP_URL/api/deposit/notify.php
+      - { key: TASHPAY_WITHDRAW_NOTIFY_URL, sync: false }     # APP_URL/api/withdraw/notify.php
+      - { key: CRON_SECRET, sync: false }                     # optional: if set, /api/cron/run.php requires it as header X-Cron-Secret
+      - { key: TURNSTILE_SITE_KEY, sync: false }
+      - { key: TURNSTILE_SECRET_KEY, sync: false }
+      - { key: SMTP_HOST, sync: false }
+      - { key: SMTP_USER, sync: false }
+      - { key: SMTP_PASS, sync: false }
+      - { key: SMTP_FROM_EMAIL, sync: false }
+      - { key: APP_ENV, value: production }
+      - { key: TASHPAY_BASE_URL, value: "https://api.tashpay.org/api" }
+      - { key: TASHPAY_CALLBACK_IPS, value: "43.98.164.189,43.98.196.171" }
+      - { key: TASHPAY_ENFORCE_CALLBACK_IP, value: "false" }
+      - { key: CLIENT_IP_HEADER, value: "CF-Connecting-IP" }
+      - { key: SMTP_PORT, value: "587" }
+
+services:
+  - type: web
+    name: af-money-safer
+    runtime: docker
+    plan: starter              # free web services sleep after inactivity; use a paid plan for 24/7
+    healthCheckPath: /api/cron/health.php
+    autoDeploy: true
+    envVars:
+      - fromGroup: af-secrets
+
+  # Optional: delete this block if you call /api/cron/run.php from cron-job.org instead (Render cron jobs are paid).
+  - type: cron
+    name: af-money-safer-reconcile
+    runtime: docker
+    plan: starter
+    schedule: "*/5 * * * *"
+    dockerCommand: php /var/www/app/scripts/reconcile.php
+    envVars:
+      - fromGroup: af-secrets

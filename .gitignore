@@ -1,0 +1,10 @@
+.env
+.env.*
+!.env.example
+/vendor/
+/storage/logs/*
+!/storage/logs/.gitkeep
+firebase-service-account.json
+*.pem
+*.key
+.DS_Store
