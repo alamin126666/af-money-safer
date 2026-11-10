@@ -98,5 +98,10 @@ return [
         'user' => env('SMTP_USER'), 'pass' => env('SMTP_PASS'),
         'from_email' => env('SMTP_FROM_EMAIL'), 'from_name' => env('SMTP_FROM_NAME', 'AF MONEY SAFER'),
     ],
+    'brevo' => [
+        'api_key'    => env('BREVO_API_KEY'),
+        'from_email' => env('BREVO_FROM_EMAIL', env('SMTP_FROM_EMAIL')),
+        'from_name'  => env('BREVO_FROM_NAME', env('SMTP_FROM_NAME', 'AF MONEY SAFER')),
+    ],
     'cron_secret' => env('CRON_SECRET'),
 ];

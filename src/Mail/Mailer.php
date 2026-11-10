@@ -47,11 +47,6 @@ final class Mailer
 
     private static function send(string $to, string $subject, string $template, array $vars, string $lang): bool
     {
-        $c = Config::get('smtp');
-        if (empty($c['host']) || empty($c['from_email'])) {
-            Logger::error('mail.not_configured');
-            return false;
-        }
         $vars += ['lang' => $lang, 'appName' => (string)Config::get('app.name')];
         $vars['footer'] = Lang::t('mail.footer', [], $lang);
         $vars['notice'] = Lang::t('mail.notice', [], $lang);
@@ -60,29 +55,89 @@ final class Mailer
         ob_start();
         require dirname(__DIR__, 2) . "/templates/emails/{$template}.php";
         $html = (string)ob_get_clean();
+        $plain = trim(strip_tags(str_replace(['</p>', '<br>'], "\n", $html)));
 
-        try {
-            $m = new PHPMailer(true);
-            $m->isSMTP();
-            $m->Host = $c['host'];
-            $m->Port = $c['port'];
-            $m->SMTPAuth = $c['user'] !== null;
-            $m->Username = (string)$c['user'];
-            $m->Password = (string)$c['pass'];
-            $m->SMTPSecure = $c['port'] === 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
-            $m->Timeout = 10;
-            $m->CharSet = 'UTF-8';
-            $m->setFrom($c['from_email'], $c['from_name']);
-            $m->addAddress($to);
-            $m->isHTML(true);
-            $m->Subject = $subject;
-            $m->Body = $html;
-            $m->AltBody = trim(strip_tags(str_replace(['</p>', '<br>'], "\n", $html)));
-            $m->send();
-            return true;
-        } catch (MailException $e) {
-            Logger::error('mail.send_failed', ['template' => $template, 'e' => $e->getMessage()]);
+        // Try SMTP first if configured
+        $c = Config::get('smtp');
+        if (!empty($c['host']) && !empty($c['from_email'])) {
+            try {
+                $m = new PHPMailer(true);
+                $m->isSMTP();
+                $m->Host = $c['host'];
+                $m->Port = $c['port'];
+                $m->SMTPAuth = $c['user'] !== null;
+                $m->Username = (string)$c['user'];
+                $m->Password = (string)$c['pass'];
+                $m->SMTPSecure = $c['port'] === 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+                $m->Timeout = 10;
+                $m->CharSet = 'UTF-8';
+                $m->setFrom($c['from_email'], $c['from_name']);
+                $m->addAddress($to);
+                $m->isHTML(true);
+                $m->Subject = $subject;
+                $m->Body = $html;
+                $m->AltBody = $plain;
+                $m->send();
+                return true;
+            } catch (MailException $e) {
+                Logger::error('mail.smtp_failed_trying_firebase', ['e' => $e->getMessage()]);
+                // Fall through to Firebase
+            }
+        }
+
+        // Fallback: Firebase Email API (HTTPS — not blocked by Render)
+        return self::sendViaFirebase($to, $subject, $html, $plain);
+    }
+
+    /**
+     * Send email via Brevo Transactional Email API (HTTPS — no SMTP port needed).
+     * Requires BREVO_API_KEY environment variable.
+     */
+    private static function sendViaFirebase(string $to, string $subject, string $html, string $plain): bool
+    {
+        $apiKey = (string)Config::get('brevo.api_key', '');
+        if ($apiKey === '') {
+            Logger::error('mail.brevo_api_key_missing');
             return false;
         }
+
+        $fromEmail = (string)Config::get('brevo.from_email', '');
+        $fromName  = (string)Config::get('brevo.from_name', Config::get('app.name'));
+        if ($fromEmail === '') {
+            Logger::error('mail.brevo_from_missing');
+            return false;
+        }
+
+        $payload = json_encode([
+            'sender'      => ['name' => $fromName, 'email' => $fromEmail],
+            'to'          => [['email' => $to]],
+            'subject'     => $subject,
+            'htmlContent' => $html,
+            'textContent' => $plain,
+        ]);
+
+        $ch = curl_init('https://api.brevo.com/v3/smtp/email');
+        curl_setopt_array($ch, [
+            CURLOPT_POST => true,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'api-key: ' . $apiKey,
+            ],
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_CONNECTTIMEOUT => 5,
+        ]);
+        $raw  = curl_exec($ch);
+        $http = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($http >= 200 && $http < 300) {
+            return true;
+        }
+
+        $err = is_string($raw) ? (json_decode($raw, true)['message'] ?? $raw) : 'curl_failed';
+        Logger::error('mail.brevo_send_failed', ['to' => $to, 'http' => $http, 'err' => $err]);
+        return false;
     }
 }
