@@ -6,8 +6,6 @@
 </div>
 <ol class="stepper">
   <li class="st on" data-n="1"><i>1</i><span data-i18n="amount"></span></li>
-  <li class="st" data-n="2"><i>2</i><span data-i18n="method"></span></li>
-  <li class="st" data-n="3"><i>3</i><span data-i18n="done"></span></li>
 </ol>
 <section class="card balance-card-sm"><div class="label"><span data-icon="wallet"></span><span data-i18n="current_balance"></span></div><div class="amount-sm" id="balance">—</div></section>
 <section class="card" id="formCard">
