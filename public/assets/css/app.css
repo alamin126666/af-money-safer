@@ -52,8 +52,8 @@ body{
     var(--bg);
 }
 body.leaving{animation:pgOut .18s ease both}
-@keyframes pgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@keyframes pgOut{to{opacity:0;transform:translateY(-6px)}}
+@keyframes pgIn{from{opacity:0}to{opacity:1}}
+@keyframes pgOut{to{opacity:0}}
 a{color:var(--primary);text-decoration:none}
 a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 h1,h2,h3{margin:0 0 .4em;line-height:1.25}
@@ -467,7 +467,7 @@ img{max-width:100%}
 .avatars button:hover{transform:scale(1.05)}
 .avatars button.sel{border-color:var(--primary);box-shadow:var(--ring)}
 .profile-actions{
-  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));z-index:30;
   background:color-mix(in srgb,var(--card) 97%,transparent);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   border-top:1px solid var(--border);
@@ -520,9 +520,9 @@ img{max-width:100%}
   padding:6px 0 calc(6px + env(safe-area-inset-bottom));
 }
 .bottom-nav a{
-  display:flex;flex-direction:column;align-items:center;gap:2px;
-  padding:6px 28px;min-height:48px;color:var(--muted);font-size:.78rem;font-weight:600;border-radius:14px;
-  transition:color .2s,background .2s;
+  flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 4px;min-height:48px;color:var(--muted);font-size:.72rem;font-weight:600;border-radius:14px;
+  white-space:nowrap;transition:color .2s,background .2s;
 }
 .bottom-nav a:hover{color:var(--primary)}
 .bottom-nav a.active{color:var(--primary);background:color-mix(in srgb,var(--primary) 9%,transparent)}
@@ -658,6 +658,8 @@ img{max-width:100%}
   .brand-panel::before{content:"";position:absolute;left:-50px;top:-50px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.07)}
   .brand-panel h2{font-size:1.9rem;color:#fff}
   .auth-card{margin:28px 20px 28px 0;align-self:center}
+  .profile-actions{position:static;background:transparent;border:0;backdrop-filter:none;-webkit-backdrop-filter:none;padding:0;margin:0 0 14px}
+  .profile-actions .btn{flex:none;padding:13px 28px}
 }
 
 .actions{margin-bottom:14px}
