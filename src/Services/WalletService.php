@@ -52,6 +52,7 @@ final class WalletService
         return [
             'id' => $d['id'], 'type' => $d['type'], 'method' => $d['method'], 'status' => $d['status'],
             'amount' => (int)$d['amount'], 'fee' => (int)($d['fee'] ?? 0), 'total' => (int)($d['total'] ?? $d['amount']),
+            'credited' => (int)($d['creditedAmount'] ?? 0),
             'orderId' => $d['merchantOrderId'], 'flowId' => $d['flowId'] ?? null,
             'walletNo' => $wn !== '' ? substr($wn, 0, 3) . '****' . substr($wn, -3) : null,
             'holderName' => $d['holderName'] ?? null,

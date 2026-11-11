@@ -8,12 +8,25 @@ AF.ready(function () {
       ? L.methodLimits[method].minDeposit : L.minDeposit;
   }
 
+  /* Same formula as the server (Money::percent): fee in poisha, rounded up. */
+  function fee(a) { return L ? Math.ceil(a * 100 * (L.depositFeePercent || 0) / 100 - 1e-9) : 0; }
+
+  /* Live fee breakdown: what you pay, the fee, and what lands in your balance. */
+  function summary() {
+    var a = parseInt(amt.value || '0', 10), s = $('#summary');
+    if (!a) { s.hidden = true; return; } s.hidden = false; var fp = fee(a);
+    s.innerHTML = '<div class="row"><span class="muted">' + AF.esc(AF.t('fee_line')) + (L && L.depositFeePercent ? ' (' + L.depositFeePercent + '%)' : '') + '</span><b>৳' + AF.esc(AF.money(fp)) + '</b></div>'
+      + '<div class="row"><span class="muted">' + AF.esc(AF.t('you_receive')) + '</span><b>৳' + AF.esc(AF.money(a * 100 - fp)) + '</b></div>';
+  }
+  amt.addEventListener('input', summary);
+
   function limits() {
     if (!L) { return; }
     var min = methodMin(), fee = L.depositFeePercent || 0;
     var txt = AF.t('limit_min_max', { min: AF.num(min), max: AF.num(L.maxDeposit) });
     if (fee > 0) { txt += ' · ' + fee + '% ' + (AF.lang() === 'bn' ? 'চার্জ' : 'fee'); }
     $('#limits').textContent = txt;
+    summary();
   }
 
   function chips() {
@@ -22,7 +35,7 @@ AF.ready(function () {
     $('#quick').innerHTML = '';
     [100, 300, 500, 1000, 2000, 5000].filter(function (v) { return v >= min && v <= L.maxDeposit; }).forEach(function (v) {
       var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = '৳' + AF.num(v);
-      b.addEventListener('click', function () { amt.value = String(v); }); $('#quick').appendChild(b);
+      b.addEventListener('click', function () { amt.value = String(v); summary(); }); $('#quick').appendChild(b);
     });
   }
 
@@ -67,6 +80,8 @@ AF.ready(function () {
         + AF.esc(AF.t(ok ? 'pay_ok' : bad ? 'pay_failed' : 'pay_wait')) + '</h3>'
         + (ok || bad ? '' : '<p class="muted">' + AF.esc(AF.t('pay_wait_hint')) + '</p>')
         + '<p><b>৳' + AF.esc(AF.money(t.amount)) + '</b> · ' + AF.esc(t.method) + '</p>'
+        + (t.fee > 0 ? '<div class="summary" style="text-align:left"><div class="row"><span class="muted">' + AF.esc(AF.t('fee_line')) + '</span><b>৳' + AF.esc(AF.money(t.fee)) + '</b></div>'
+        + '<div class="row"><span class="muted">' + AF.esc(AF.t('you_receive')) + '</span><b>৳' + AF.esc(AF.money(t.credited ? t.credited : t.amount - t.fee)) + '</b></div></div>' : '')
         + '<a class="btn btn-primary" href="/dashboard.php">' + AF.esc(AF.t('nav_home')) + '</a></div>';
     }
     (function poll() {

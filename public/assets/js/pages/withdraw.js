@@ -11,6 +11,7 @@ AF.ready(function () {
   }
 
   function fee(a) { return L ? Math.ceil(a * 100 * L.withdrawFeePercent / 100 - 1e-9) : 0; }
+  var bal = null;   /* wallet balance in poisha, from AF.me */
 
   function summary() {
     var a = parseInt(amt.value || '0', 10), s = $('#summary');
@@ -31,7 +32,7 @@ AF.ready(function () {
   }
 
   AF.me(true).then(function (me) {
-    if (!me) { return; } L = me.limits;
+    if (!me) { return; } L = me.limits; bal = me.wallet.balance;
     $('#balance').textContent = '৳' + AF.money(me.wallet.balance); AF.top(me); limits();
   });
   document.addEventListener('af:lang', limits);
@@ -51,6 +52,13 @@ AF.ready(function () {
     if (a < min) {
       AF.toast((AF.lang() === 'bn' ? 'সর্বনিম্ন ' : 'Minimum ') + '৳' + AF.num(min), 'error'); return;
     }
+    /* The fee comes out of the balance too: withdrawing ৳100 needs ৳101 in the
+       balance, so a ৳100 balance cannot withdraw ৳100. The server enforces the
+       same rule; this stops the user one step earlier with a clear message. */
+    var total = a * 100 + fee(a);
+    if (bal != null && total > bal) {
+      AF.toast((AF.lang() === 'bn' ? 'ব্যালেন্স যথেষ্ট নয়। ফি সহ মোট ৳' + AF.money(total) + ' লাগবে।' : 'Insufficient balance. You need ৳' + AF.money(total) + ' including the fee.'), 'error'); return;
+    }
     AF.busy(btn, true);
     AF.api('withdraw/request-otp.php', { method: method, amount: d.amount.trim(), walletNo: d.walletNo, holderName: d.holderName }).then(function (j) {
       AF.busy(btn, false);
@@ -65,6 +73,7 @@ AF.ready(function () {
       '<p class="muted">' + AF.esc(AF.t('otp_desc', { email: info.email })) + '</p>'
       + '<div class="summary">'
       + '<div class="row"><span class="muted">' + AF.esc(AF.t('you_receive')) + '</span><b>৳' + AF.esc(AF.money(info.amount)) + '</b></div>'
+      + '<div class="row"><span class="muted">' + AF.esc(AF.t('fee_line')) + (L && L.withdrawFeePercent ? ' (' + L.withdrawFeePercent + '%)' : '') + '</span><b>৳' + AF.esc(AF.money(info.fee || 0)) + '</b></div>'
       + '<div class="row"><span class="muted">' + AF.esc(AF.t('total_debit')) + '</span><b>৳' + AF.esc(AF.money(info.total)) + '</b></div>'
       + '</div>'
       + '<div class="otp-boxes" id="mb"></div><div class="numpad" id="mp"></div>'

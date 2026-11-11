@@ -16,6 +16,7 @@
       <div class="input big"><span class="cur">৳</span><input type="text" name="amount" inputmode="numeric" autocomplete="off" placeholder="0" maxlength="9" required></div></label>
     <div class="chips" id="quick"></div>
     <p class="limits muted" id="limits"></p>
+    <div class="summary" id="summary" hidden></div>
     <div class="field"><span data-i18n="payment_method"></span>
       <div class="methods" id="methods">
         <button type="button" class="method sel" data-m="bKash" data-method="bKash">
