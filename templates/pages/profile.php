@@ -23,7 +23,6 @@
   <div class="pref"><span data-i18n="language"></span><div class="seg" id="segLang"><button data-v="bn">বাংলা</button><button data-v="en">English</button></div></div>
   <div class="pref"><span data-i18n="theme"></span><div class="seg" id="segTheme"><button data-v="light" data-i18n="light"></button><button data-v="dark" data-i18n="dark"></button></div></div>
 </section>
-<!-- Sticky bottom actions — always visible -->
-<div class="profile-actions">
-  <button class="btn btn-danger" id="logout" type="button"><span data-icon="logout"></span><span data-i18n="logout"></span></button>
-</div>
+<section class="card logout-card card-reveal">
+  <button class="btn btn-danger btn-block" id="logout" type="button"><span data-icon="logout"></span><span data-i18n="logout"></span></button>
+</section>
