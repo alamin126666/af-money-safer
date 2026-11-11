@@ -654,3 +654,8 @@ img{max-width:100%}
 
 .actions{margin-bottom:14px}
 .bkash-mark svg,.nagad-mark svg{border-radius:6px}
+
+/* ── History: auto-load all (no "load more" button) ── */
+.h-loading{display:flex;justify-content:center;padding:18px 0}
+.h-loading .spin{width:26px;height:26px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:sp .7s linear infinite}
+.h-count{text-align:center;padding:8px 0 4px;font-size:.85rem}

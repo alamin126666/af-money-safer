@@ -134,7 +134,8 @@
           + '</form>'
           + '<div id="hList" style="margin-top:8px"></div>'
           + '<div class="empty" id="hEmpty" hidden>' + AF.esc(AF.t('no_data')) + '</div>'
-          + '<button class="btn btn-ghost btn-block" id="hMore" type="button" hidden>' + AF.esc(AF.t('load_more')) + '</button>';
+          + '<div id="hLoading" class="h-loading" hidden><span class="spin"></span></div>'
+          + '<div class="muted h-count" id="hCount" hidden></div>';
       }
 
       function updateDateLabel() {
@@ -215,14 +216,21 @@
       function load(reset) {
         if (loading) { return; } loading = true;
         if (reset) { cursor = null; $('#hList', root).innerHTML = ''; }
+        var ld = $('#hLoading', root); if (ld) { ld.hidden = false; }
         var body = Object.assign({}, f, { cursor: cursor, limit: full ? 15 : 8 });
         AF.api('history/get.php', body).then(function (j) {
-          loading = false; if (!j.success) { return; }
+          loading = false; if (!j.success) { if (ld) { ld.hidden = true; } return; }
           var list = $('#hList', root);
           j.data.items.forEach(function (t) { list.appendChild(row(t)); });
           cursor = j.data.next;
-          $('#hMore', root).hidden = !cursor;
           $('#hEmpty', root).hidden = list.children.length > 0;
+          var c = $('#hCount', root);
+          if (c) {
+            c.hidden = list.children.length === 0;
+            c.textContent = (AF.lang() === 'bn' ? 'মোট ' : 'Total ') + AF.num(list.children.length) + (AF.lang() === 'bn' ? ' টি লেনদেন' : ' transactions');
+          }
+          /* No "load more" button: keep paging automatically until every transaction is shown. */
+          if (cursor) { load(false); } else if (ld) { ld.hidden = true; }
         });
       }
 
@@ -241,7 +249,6 @@
             f.startDate = s; f.endDate = e2; updateDateLabel();
           });
         }
-        if (e.target.closest('#hMore')) { load(false); }
       });
 
       $('#hFilters', root).addEventListener('submit', function (e) {
