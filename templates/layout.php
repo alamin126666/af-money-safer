@@ -25,7 +25,7 @@ $navHome = in_array($name, ['dashboard', 'deposit', 'withdraw', 'history', 'noti
   <nav class="top-actions">
     <button class="icon-btn" data-action="lang" aria-label="Language"><span data-icon="globe"></span><b class="lang-tag"></b></button>
     <button class="icon-btn" data-action="theme" aria-label="Theme"><span data-icon="moon"></span></button>
-    <a class="icon-btn" href="/notifications.php" aria-label="Notifications"><span data-icon="bell"></span><i class="badge" id="nbadge" hidden>0</i></a>
+    <a class="icon-btn has-badge" href="/notifications.php" aria-label="Notifications"><span data-icon="bell"></span><i class="badge" id="nbadge" hidden>0</i></a>
     <a class="icon-btn avatar-btn" href="/profile.php" aria-label="Profile"><span id="topAvatar" data-icon="user"></span></a>
   </nav>
 </header>
