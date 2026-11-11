@@ -159,6 +159,53 @@ final class AuthService
         return self::sendOtpFor($purpose, $email, $uid, $purpose === 'login' ? 'LOGIN_CODE_SENT' : 'REGISTER_CODE_SENT');
     }
 
+    /**
+     * Admin login: email + password only, NO email code (OTP).
+     * Only accounts with an active admin_users doc may use it; everyone else
+     * gets NOT_ADMIN. Same rate limits + Turnstile as the normal login.
+     */
+    public static function adminLogin(array $in): array
+    {
+        $ip = Request::ip();
+        RateLimit::hit("login_ip:{$ip}", 40, 900);
+
+        $email = Validator::email(self::s($in, 'email', 254));
+        $pw    = self::s($in, 'password', 129);
+        if ($email === null || $pw === '' || strlen($pw) > 128) {
+            throw new ApiException('INVALID_CREDENTIALS', 401);
+        }
+        $ek = 'login_fail_email:' . hash('sha256', $email);
+        $ik = "login_fail_ip:{$ip}";
+        RateLimit::assertNotBlocked($ek, 5);
+        RateLimit::assertNotBlocked($ik, 20);
+
+        Turnstile::verify(self::s($in, 'turnstileToken', 2048));
+
+        try {
+            $uid = self::passwordSignIn($email, $pw);
+        } catch (ApiException $e) {
+            if ($e->errorCode === 'INVALID_CREDENTIALS') {
+                RateLimit::record($ek, 900);
+                RateLimit::record($ik, 900);
+            }
+            throw $e;
+        }
+        RateLimit::clear($ek);
+
+        $snap = self::userRef($uid)->snapshot();
+        if (!$snap->exists()) {
+            throw new ApiException('INVALID_CREDENTIALS', 401);
+        }
+        $u = $snap->data();
+        if (($u['status'] ?? '') !== 'active') {
+            throw new ApiException('ACCOUNT_DISABLED', 403);
+        }
+        if (!AdminGuard::isAdmin($uid)) {
+            throw new ApiException('NOT_ADMIN', 403);
+        }
+        return self::completeLogin($uid, false);
+    }
+
     // ── Trusted device helpers ──
     private static function isTrustedDevice(string $uid, string $deviceId): bool
     {

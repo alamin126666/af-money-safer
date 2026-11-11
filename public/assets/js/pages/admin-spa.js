@@ -110,7 +110,8 @@
       if (!d.email || !d.password) { AF.toast('Enter your admin email and password.', 'error'); return; }
       if (!cap || !cap.token()) { AF.toast(AF.t('captcha_wait'), 'error'); return; }
       AF.busy(btn, true);
-      AF.api('auth/login.php', { email: d.email, password: d.password, turnstileToken: cap.token() }).then(function (j) {
+      // Admin login: email + password only — no email code (OTP) for admins.
+      AF.api('admin/login.php', { email: d.email, password: d.password, turnstileToken: cap.token() }).then(function (j) {
         AF.busy(btn, false);
         if (j.success && j.data && j.data.next === 'dashboard') {
           AF.api('admin/overview.php', undefined, { quiet: true }).then(function (k) {
@@ -118,11 +119,6 @@
             else { AF.api('auth/logout.php', {}); AF.toast('This account is not an admin.', 'error'); }
           });
           return;
-        }
-        if (j.success || j.code === 'MAIL_FAILED') {
-          sessionStorage.setItem('af_otp', JSON.stringify({ purpose: j.data.purpose, email: j.data.email, resendAt: Date.now() + (j.data.resendIn || 60) * 1000, len: j.data.codeLength || 6, dest: '/#/admin/dashboard' }));
-          if (j.success) { AF.toast(j.message, 'success'); }
-          AF.go('/verify.php'); return;
         }
         cap.reset();
       });

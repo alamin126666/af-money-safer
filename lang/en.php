@@ -23,6 +23,7 @@ return [
     'CAPTCHA_UNAVAILABLE' => 'CAPTCHA verification is unavailable right now. Try again shortly.',
     'EMAIL_EXISTS' => 'Email already exists.',
     'INVALID_CREDENTIALS' => 'Invalid email or password.',
+    'NOT_ADMIN' => 'This account is not an admin.',
     'ACCOUNT_DISABLED' => 'This account has been disabled.',
     'OTP_INVALID' => 'Invalid verification code.',
     'OTP_EXPIRED' => 'The code has expired. Request a new one.',
