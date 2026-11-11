@@ -55,7 +55,6 @@ AF.ready(function () {
   }
   function refresh() { return AF.me(true).then(function (m) { if (m) { me = m; fill(); } }); }
   refresh();
-  AFHistory.mount($('#history'));
   setInterval(function () { if (!document.hidden) { refresh(); } }, 30000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) { refresh(); } });
   document.addEventListener('af:lang', fill);

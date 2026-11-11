@@ -19,10 +19,5 @@
 <section class="grid-2 actions quick-grid">
   <a class="action-card dep card-reveal" href="/deposit.php"><span class="action-ic" data-icon="deposit" data-size="28"></span><b data-i18n="deposit"></b><small data-i18n="deposit_hint"></small></a>
   <a class="action-card wd card-reveal" href="/withdraw.php"><span class="action-ic" data-icon="withdraw" data-size="28"></span><b data-i18n="withdraw"></b><small data-i18n="withdraw_hint"></small></a>
-  <a class="action-card hst card-reveal" href="/history.php"><span class="action-ic" data-icon="history" data-size="28"></span><b data-i18n="history"></b><small data-i18n="view_all"></small></a>
   <a class="action-card ntf card-reveal" href="/notifications.php"><span class="action-ic" data-icon="bell" data-size="28"></span><b data-i18n="notifications"></b></a>
-</section>
-<section class="card card-reveal">
-  <div class="card-title"><h3 data-i18n="history"></h3><a href="/history.php" class="link" data-i18n="view_all"></a></div>
-  <div id="history"></div>
 </section>
