@@ -63,7 +63,7 @@ return [
         'max_deposit'  => (int)env('MAX_DEPOSIT', 25000),
         'min_withdraw' => (int)env('MIN_WITHDRAW', 100),
         'max_withdraw' => (int)env('MAX_WITHDRAW', 25000),
-        'deposit_fee_percent'  => (float)env('DEPOSIT_FEE_PERCENT', 8),
+        'deposit_fee_percent'  => (float)env('DEPOSIT_FEE_PERCENT', 3.5),
         'withdraw_fee_percent' => (float)env('WITHDRAW_FEE_PERCENT', 1),
         // Per-method minimums (override the global min above)
         'bkash_min_deposit'   => (int)env('BKASH_MIN_DEPOSIT',  300),
