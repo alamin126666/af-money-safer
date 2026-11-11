@@ -6,7 +6,7 @@ declare(strict_types=1);
  * Creates the FIRST admin account (email + password). No Shell needed.
  * After an admin exists this page answers 404 ("this page does not exist").
  */
-require __DIR__ . '/src/bootstrap.php';
+require __DIR__ . '/../src/bootstrap.php';
 
 use App\Services\AdminSetup;
 
