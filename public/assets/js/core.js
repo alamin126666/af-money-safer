@@ -119,7 +119,10 @@
 
   /* ---------- API client ---------- */
   var csrf = (($('meta[name=csrf]') || {}).content) || '', boot = null;
-  AF.boot = function () {
+  /* boot is cached for the page lifetime — pass force=true after a login/logout,
+     or the guard below keeps seeing the pre-login "not authenticated" snapshot. */
+  AF.boot = function (force) {
+    if (force) { boot = null; }
     if (boot) { return boot; }
     boot = fetch('/api/auth/csrf.php?lang=' + lang, { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) {
       if (j.success) { csrf = j.data.csrfToken; return j.data; } throw new Error('boot');

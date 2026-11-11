@@ -72,7 +72,8 @@
 
   /* ---------- route guard: only logged-in admins see the protected views ---------- */
   function guard(next) {
-    AF.boot().then(function (b) {
+    /* Fresh boot: the cached one still says "logged out" right after a login. */
+    AF.boot(true).then(function (b) {
       if (!b.authenticated) { go('login'); return; }
       AF.api('admin/overview.php', undefined, { quiet: true }).then(function (j) {
         if (j.success) { next(); }
@@ -100,7 +101,7 @@
     var f = document.getElementById('spaLogin'), btn = document.getElementById('spaLoginBtn');
     cap = null;
     AF.turnstile(document.getElementById('spaCaptcha')).then(function (c) { cap = c; });
-    AF.boot().then(function (b) {
+    AF.boot(true).then(function (b) {
       if (!b.authenticated) { return; }
       AF.api('admin/overview.php', undefined, { quiet: true }).then(function (j) { if (j.success) { go('dashboard'); } });
     });
