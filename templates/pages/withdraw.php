@@ -4,9 +4,6 @@
   <h2 data-i18n="withdraw_title"></h2>
   <p class="muted" data-i18n="withdraw_hint"></p>
 </div>
-<ol class="stepper">
-  <li class="st on" data-n="1"><i>1</i><span data-i18n="amount"></span></li>
-</ol>
 <section class="card balance-card-sm"><div class="label"><span data-icon="wallet"></span><span data-i18n="current_balance"></span></div><div class="amount-sm" id="balance">—</div></section>
 <section class="card" id="formCard">
   <form id="f" novalidate>
