@@ -87,7 +87,7 @@
 
   /* ---------- views ---------- */
   function vLogin() {
-    content('<div class="auth-layout" style="min-height:0"><section class="auth-card" style="margin:0 auto">'
+    content('<div class="auth-layout auth-single" style="min-height:0"><section class="auth-card" style="margin:0 auto">'
       + '<div class="auth-head"><div data-logo="64"></div><h1>Admin Login</h1><p class="muted">Sign in with your admin account to open the admin panel.</p></div>'
       + '<form id="spaLogin" novalidate autocomplete="on">'
       + '<label class="field"><span>Admin email</span><div class="input"><span data-icon="mail"></span><input type="email" name="email" autocomplete="email" inputmode="email" required></div></label>'
@@ -132,7 +132,7 @@
         content('<div style="text-align:center;padding:60px 0"><h1 style="font-size:2.2rem;margin:0">404</h1><p class="muted">This page does not exist.</p><p><a class="btn btn-primary" href="#/admin/login">Go to admin login</a></p></div>');
         return;
       }
-      content('<div class="auth-layout" style="min-height:0"><section class="auth-card" style="margin:0 auto">'
+      content('<div class="auth-layout auth-single" style="min-height:0"><section class="auth-card" style="margin:0 auto">'
         + '<div class="auth-head"><div data-logo="64"></div><h1>Admin Setup</h1><p class="muted">Create the first admin account. This page works only once — after setup it disappears.</p></div>'
         + '<form id="spaSetup" novalidate autocomplete="off">'
         + '<label class="field"><span>Admin Gmail</span><div class="input"><span data-icon="mail"></span><input type="email" name="email" autocomplete="email" inputmode="email" placeholder="admin@gmail.com" required></div></label>'
