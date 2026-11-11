@@ -46,7 +46,7 @@ $v = static fn(string $f): string => (string)@filemtime(dirname(__DIR__) . $f);
       <button class="btn btn-primary btn-block" id="submit" type="submit">Login to admin panel</button>
     </form>
     <div class="auth-links"><a href="/dashboard.php">← Back to site</a></div>
-    <p class="auth-foot"><span class="muted">First time here?</span> <a href="/admin-setup.php">Create the admin account</a></p>
+    <p class="auth-foot"><span class="muted">First time here?</span> <a href="/#/admin-setup">Create the admin account</a></p>
   </section>
 </div>
 <script src="/assets/js/i18n.js?v=<?= $v('/assets/js/i18n.js') ?>" defer></script>

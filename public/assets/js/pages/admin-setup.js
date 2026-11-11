@@ -11,7 +11,7 @@ AF.ready(function () {
     AF.busy(btn, true);
     AF.api('admin/setup-account.php', { email: d.email, password: d.password, confirmPassword: d.confirmPassword, turnstileToken: cap.token() }).then(function (j) {
       AF.busy(btn, false);
-      if (j.success) { AF.toast(j.message, 'success'); setTimeout(function () { location.replace('/admin/dashboard.php'); }, 800); return; }
+      if (j.success) { AF.toast(j.message, 'success'); setTimeout(function () { location.replace('/#/admin/dashboard'); }, 800); return; }
       cap.reset();
     });
   });

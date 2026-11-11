@@ -4,15 +4,15 @@ AF.ready(function () {
   AF.api('admin/overview.php', undefined, { quiet: true }).then(function (j) {
     if (!j.success) { return; } var d = j.data;
     var cards = [
-      ['Users', d.users, d.disabledUsers ? d.disabledUsers + ' disabled' : 'all active'],
-      ['Total deposited', tk(d.totalDeposited || 0), 'lifetime'],
-      ['Total withdrawn', tk(d.totalWithdrawn || 0), 'lifetime'],
-      ['Pending deposits', d.pendingDeposits, 'awaiting payment'],
-      ['Pending withdraws', d.pendingWithdraws, 'awaiting payout'],
-      ['Needs review', d.needsReview, d.needsReview ? 'check transactions' : 'all clear'],
+      ['user', 't-green', 'Users', d.users, d.disabledUsers ? d.disabledUsers + ' disabled' : 'all active'],
+      ['deposit', 't-gold', 'Total deposited', tk(d.totalDeposited || 0), 'lifetime'],
+      ['withdraw', 't-blue', 'Total withdrawn', tk(d.totalWithdrawn || 0), 'lifetime'],
+      ['clock', 't-purple', 'Pending deposits', d.pendingDeposits, 'awaiting payment'],
+      ['clock', 't-red', 'Pending withdraws', d.pendingWithdraws, 'awaiting payout'],
+      ['alert', 't-red', 'Needs review', d.needsReview, d.needsReview ? 'check transactions' : 'all clear'],
     ];
     $('#stats').innerHTML = cards.map(function (c) {
-      return '<section class="card stat-card"><span class="label">' + E(c[0]) + '</span><b>' + E(c[1]) + '</b><small>' + E(c[2]) + '</small></section>';
+      return '<section class="card stat-card"><span class="stat-ic ' + c[1] + '">' + AF.icon(c[0], 22) + '</span><div><span class="label">' + E(c[2]) + '</span><b>' + E(c[3]) + '</b><small>' + E(c[4]) + '</small></div></section>';
     }).join('');
     $('#sys').innerHTML = '<div class="kv"><span class="muted">Maintenance mode</span><b>' + (d.maintenance ? 'ON' : 'off') + '</b></div>'
       + '<div class="kv"><span class="muted">TashPay merchant balance</span><b>' + (d.merchantBalance == null ? 'n/a' : E(d.merchantBalance)) + '</b></div>';

@@ -707,3 +707,33 @@ img{max-width:100%}
   .admin-content{padding:14px}
   .admin-grid2{grid-template-columns:1fr}
 }
+
+/* ── Admin panel: premium polish ── */
+#adminSpa{position:fixed;inset:0;z-index:3000;overflow-y:auto;background:var(--bg)}
+#adminSpa .admin-shell{min-height:100%}
+.admin-content>*{animation:admIn .32s var(--ease)}
+@keyframes admIn{from{opacity:0;transform:translateY(8px)}}
+.admin-side{background:linear-gradient(180deg,#0B3D2E,#082e22)}
+.admin-nav{margin-top:6px}
+.admin-nav a{border:1px solid transparent}
+.admin-nav a.on{background:linear-gradient(135deg,rgba(16,185,129,.28),rgba(245,196,81,.14));border-color:rgba(255,255,255,.16);color:#fff}
+.admin-nav a .ic{flex:none}
+.stat-card{display:flex;gap:13px;align-items:flex-start;padding:18px}
+.stat-card .label{font-size:.78rem}
+.stat-card b{display:block;font-size:1.42rem;margin-top:3px;font-variant-numeric:tabular-nums}
+.stat-card small{color:var(--muted)}
+.stat-ic{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;color:#fff;flex:none;box-shadow:0 6px 14px rgba(11,61,46,.25)}
+.stat-ic.t-green{background:linear-gradient(135deg,#10B981,#0B3D2E)}
+.stat-ic.t-gold{background:linear-gradient(135deg,#F5C451,#B8860B);color:#3a2b00}
+.stat-ic.t-blue{background:linear-gradient(135deg,#5b8def,#2563eb)}
+.stat-ic.t-purple{background:linear-gradient(135deg,#a78bfa,#7c3aed)}
+.stat-ic.t-red{background:linear-gradient(135deg,#f87171,#dc2626)}
+.tbl{width:100%;border-collapse:separate;border-spacing:0}
+.tbl th{position:sticky;top:0;background:var(--card);text-align:left;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:10px 12px;border-bottom:2px solid var(--border);z-index:1}
+.tbl td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.tbl tbody tr{transition:background .15s}
+.tbl tbody tr:hover{background:color-mix(in srgb,var(--primary) 6%,transparent)}
+.admin-content h3{font-size:1.02rem}
+#sf h3,#spaSf h3{margin:18px 0 4px;font-size:.95rem}
+#sf h3:first-child,#spaSf h3:first-child{margin-top:0}
+.admin-badge{display:inline-block;font-size:.68rem;font-weight:800;letter-spacing:1.2px;background:linear-gradient(135deg,#F5C451,#e0a92e);color:#3a2b00;border-radius:7px;padding:3px 8px;vertical-align:3px;margin-left:6px}

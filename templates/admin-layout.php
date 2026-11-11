@@ -31,7 +31,7 @@ $who = ($me['fullName'] ?? 'Admin') . ' · ' . ($adminRole ?? 'admin');
     <a class="admin-brand" href="/admin/dashboard.php"><span data-logo="30"></span><span>AF MONEY SAFER <em>Admin</em></span></a>
     <nav class="admin-nav" aria-label="Admin">
       <?php foreach ($nav as [$p, $label, $ic]): ?>
-        <a href="/admin/<?= $p === 'admin/dashboard' ? 'dashboard.php' : substr($p, 6) . '.php' ?>" class="<?= $name === $p ? 'on' : '' ?>"><span data-icon="<?= $ic ?>"></span><?= $label ?></a>
+        <a href="/#/admin/<?= substr($p, 6) ?>" class="<?= $name === $p ? 'on' : '' ?>"><span data-icon="<?= $ic ?>"></span><?= $label ?></a>
       <?php endforeach; ?>
     </nav>
     <div class="admin-side-foot">

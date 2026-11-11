@@ -60,6 +60,8 @@ $navHome = in_array($name, ['dashboard', 'deposit', 'withdraw', 'history', 'noti
 <?php endif; ?>
 <script src="/assets/js/i18n.js?v=<?= $v('/assets/js/i18n.js') ?>" defer></script>
 <script src="/assets/js/core.js?v=<?= $v('/assets/js/core.js') ?>" defer></script>
+<script src="/assets/js/pages/admin/common.js?v=<?= $v('/assets/js/pages/admin/common.js') ?>" defer></script>
+<script src="/assets/js/pages/admin-spa.js?v=<?= $v('/assets/js/pages/admin-spa.js') ?>" defer></script>
 <?php foreach ($o['js'] as $js): ?><script src="/assets/js/<?= $h($js) ?>.js?v=<?= $v('/assets/js/' . $js . '.js') ?>" defer></script>
 <?php endforeach; ?>
 <script src="/assets/js/pages/<?= $h($name) ?>.js?v=<?= $v('/assets/js/pages/' . $name . '.js') ?>" defer></script>
