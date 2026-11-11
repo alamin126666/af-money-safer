@@ -22,12 +22,7 @@
   <div class="pref"><span data-i18n="language"></span><div class="seg" id="segLang"><button data-v="bn">বাংলা</button><button data-v="en">English</button></div></div>
   <div class="pref"><span data-i18n="theme"></span><div class="seg" id="segTheme"><button data-v="light" data-i18n="light"></button><button data-v="dark" data-i18n="dark"></button></div></div>
 </section>
-<section class="card" id="adminLink" hidden>
-  <a class="menu-item" href="/admin.php"><span data-icon="shield"></span><span>Admin panel</span><span data-icon="chevron"></span></a>
-</section>
-
 <!-- Sticky bottom actions — always visible -->
 <div class="profile-actions">
-  <a class="btn btn-ghost" id="adminLinkBtn" href="/admin.php" hidden><span data-icon="shield"></span><span>Admin</span></a>
   <button class="btn btn-danger" id="logout" type="button"><span data-icon="logout"></span><span data-i18n="logout"></span></button>
 </div>

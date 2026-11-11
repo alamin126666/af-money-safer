@@ -7,6 +7,10 @@
       <div class="input"><span data-icon="lock"></span><input type="password" name="password" autocomplete="current-password" required>
         <button type="button" class="eye" data-eye aria-label="Show/Hide"><span data-icon="eye"></span></button></div></label>
     <div id="captcha" class="captcha"></div>
+    <label class="remember-me-row">
+      <input type="checkbox" id="rememberMe" class="rmb-check">
+      <span class="rmb-label" data-i18n="remember_me_7d"></span>
+    </label>
     <button class="btn btn-primary btn-block" id="submit" type="submit"><span data-i18n="login"></span></button>
   </form>
   <div class="auth-links"><a href="/forgot-password.php" data-i18n="forgot_password"></a></div>

@@ -2,6 +2,7 @@
 window.AF_I18N = {
 en: {
   splash_tag:'Safe deposits & withdrawals', login_sub:'Log in to your account', email:'Email', password:'Password', login:'Login',
+  remember_me_7d:'Remember me for 7 days (no OTP on login)',
   forgot_password:'Forgot password?', no_account:"Don't have an account?", register_now:'Register now', create_account:'Create account',
   register_sub:'Join AF MONEY SAFER in a minute', full_name:'Full name', confirm_password:'Confirm password', register:'Register',
   have_account:'Already have an account?', password_rules:'8+ characters with a lowercase letter, an uppercase letter and a number.',
@@ -35,6 +36,7 @@ en: {
 },
 bn: {
   splash_tag:'নিরাপদ ডিপোজিট ও উইথড্র', login_sub:'আপনার অ্যাকাউন্টে লগইন করুন', email:'ইমেইল', password:'পাসওয়ার্ড', login:'লগইন',
+  remember_me_7d:'৭ দিন মনে রাখো (লগইনে OTP লাগবে না)',
   forgot_password:'পাসওয়ার্ড ভুলে গেছেন?', no_account:'অ্যাকাউন্ট নেই?', register_now:'এখনই রেজিস্টার করুন', create_account:'অ্যাকাউন্ট তৈরি করুন',
   register_sub:'এক মিনিটেই AF MONEY SAFER-এ যোগ দিন', full_name:'পূর্ণ নাম', confirm_password:'পাসওয়ার্ড নিশ্চিত করুন', register:'রেজিস্টার',
   have_account:'আগেই অ্যাকাউন্ট আছে?', password_rules:'কমপক্ষে ৮ অক্ষর, এতে ছোট হাতের অক্ষর, বড় হাতের অক্ষর ও সংখ্যা থাকতে হবে।',

@@ -140,7 +140,54 @@ final class AuthService
             throw new ApiException('ACCOUNT_DISABLED', 403);
         }
         $purpose = !empty($u['emailVerified']) ? 'login' : 'register';
+
+        // ── Remember-me: skip OTP if device is trusted (login only, not first-time register) ──
+        if ($purpose === 'login' && !empty($in['rememberMe'])) {
+            $deviceId = self::s($in, 'deviceId', 128);
+            if ($deviceId !== '' && self::isTrustedDevice($uid, $deviceId)) {
+                // device trusted → skip OTP, login directly
+                $_SESSION['pendingRememberMe'] = true; // mark so verifyOtp can trust again
+                return self::completeLogin($uid, false);
+            }
+        }
+        // Store rememberMe flag so after OTP verify we can mark device trusted
+        if ($purpose === 'login' && !empty($in['rememberMe'])) {
+            $deviceId = self::s($in, 'deviceId', 128);
+            $_SESSION['pendingRememberMe'] = $deviceId ?: '';
+        }
+
         return self::sendOtpFor($purpose, $email, $uid, $purpose === 'login' ? 'LOGIN_CODE_SENT' : 'REGISTER_CODE_SENT');
+    }
+
+    // ── Trusted device helpers ──
+    private static function isTrustedDevice(string $uid, string $deviceId): bool
+    {
+        try {
+            $ref = Firebase::db()->collection('trusted_devices')->document($uid)
+                ->collection('devices')->document($deviceId);
+            $snap = $ref->snapshot();
+            if (!$snap->exists()) { return false; }
+            $d = $snap->data();
+            $exp = (int)($d['expiresAt'] ?? 0);
+            if ($exp < time()) {
+                $ref->delete(); // cleanup expired
+                return false;
+            }
+            return true;
+        } catch (\Throwable) { return false; }
+    }
+
+    private static function trustDevice(string $uid, string $deviceId): void
+    {
+        if ($deviceId === '') { return; }
+        try {
+            Firebase::db()->collection('trusted_devices')->document($uid)
+                ->collection('devices')->document($deviceId)->set([
+                    'createdAt' => FieldValue::serverTimestamp(),
+                    'expiresAt' => time() + 7 * 86400, // 7 days
+                    'uid' => $uid,
+                ]);
+        } catch (\Throwable) {}
     }
 
     /** Re-authentication inside the app (profile, admin). Wrong password => WRONG_PASSWORD. */
@@ -257,7 +304,14 @@ final class AuthService
         if (!in_array($p['purpose'], ['register', 'login'], true) || empty($p['uid'])) {
             throw new ApiException('BAD_REQUEST', 400);
         }
-        return self::completeLogin((string)$p['uid'], $p['purpose'] === 'register');
+        // After OTP verified: if rememberMe was set, trust the device
+        $pendingDevice = $_SESSION['pendingRememberMe'] ?? null;
+        $result = self::completeLogin((string)$p['uid'], $p['purpose'] === 'register');
+        if (is_string($pendingDevice) && $pendingDevice !== '') {
+            self::trustDevice((string)$p['uid'], $pendingDevice);
+        }
+        unset($_SESSION['pendingRememberMe']);
+        return $result;
     }
 
     private static function completeLogin(string $uid, bool $markVerified): array
@@ -280,7 +334,7 @@ final class AuthService
         unset($_SESSION['pending']);
         $_SESSION['uid'] = $uid;
         $_SESSION['authAt'] = time();
-        unset($_SESSION['lastCheck'], $_SESSION['userCache']);
+        unset($_SESSION['lastCheck'], $_SESSION['userCache'], $_SESSION['pendingRememberMe']);
         AuditLog::log($uid, $markVerified ? 'user.verified_and_logged_in' : 'user.logged_in', "users/{$uid}");
         return [$markVerified ? 'ACCOUNT_VERIFIED' : 'LOGIN_OK', ['next' => 'dashboard']];
     }
