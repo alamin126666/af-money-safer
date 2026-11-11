@@ -13,9 +13,21 @@ AF.ready(function () {
       el.querySelector('b').textContent = text(n); box.appendChild(el);
     });
   }
-  AF.api('notifications/list.php').then(function (j) { if (j.success) { items = j.data.items; draw(); } });
-  document.addEventListener('af:lang', draw);
-  $('#markAll').addEventListener('click', function () {
-    AF.api('notifications/mark-read.php', {}).then(function (j) { if (j.success) { items.forEach(function (n) { n.read = true; }); draw(); var b = $('#nbadge'); if (b) { b.hidden = true; } } });
+  /* Seen = read: opening the page clears the unread count to 0 everywhere
+     (top-bar badge included), and the server count is re-synced afterwards. */
+  function markSeen() {
+    AF.api('notifications/mark-read.php', {}).then(function (j) {
+      if (!j.success) { return; }
+      items.forEach(function (n) { n.read = true; }); draw();
+      var b = $('#nbadge'); if (b) { b.hidden = true; b.textContent = '0'; }
+      AF.me(true).then(AF.top);
+    });
+  }
+  AF.api('notifications/list.php').then(function (j) {
+    if (!j.success) { return; }
+    items = j.data.items; draw();
+    if (items.some(function (n) { return !n.read; })) { markSeen(); }
   });
+  document.addEventListener('af:lang', draw);
+  $('#markAll').addEventListener('click', markSeen);
 });

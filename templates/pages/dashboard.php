@@ -13,8 +13,8 @@
   <div class="sub muted"><span data-i18n="bdt_label"></span></div>
 </section>
 <section class="grid-2">
-  <div class="card mini in card-reveal"><div class="label"><span data-icon="deposit"></span><span data-i18n="total_deposit"></span></div><div class="amount-sm" id="totalDeposit">—</div><span class="trend" aria-hidden="true"><span data-icon="deposit" data-size="16"></span></span></div>
-  <div class="card mini out card-reveal"><div class="label"><span data-icon="withdraw"></span><span data-i18n="total_withdraw"></span></div><div class="amount-sm" id="totalWithdraw">—</div><span class="trend" aria-hidden="true"><span data-icon="withdraw" data-size="16"></span></span></div>
+  <div class="card mini in card-reveal"><div class="label"><span data-icon="deposit"></span><span data-i18n="total_deposit"></span></div><div class="amount-sm" id="totalDeposit">—</div></div>
+  <div class="card mini out card-reveal"><div class="label"><span data-icon="withdraw"></span><span data-i18n="total_withdraw"></span></div><div class="amount-sm" id="totalWithdraw">—</div></div>
 </section>
 <section class="grid-2 actions quick-grid">
   <a class="action-card dep card-reveal" href="/deposit.php"><span class="action-ic" data-icon="deposit" data-size="28"></span><b data-i18n="deposit"></b><small data-i18n="deposit_hint"></small></a>

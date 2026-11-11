@@ -32,8 +32,8 @@ AF.ready(function () {
   var MASK = '৳ ••••••';
   function setAmount(el, paisa) {
     if (!el) { return; }
-    if (hidden) { el.textContent = MASK; el.classList.remove('pop'); return; }
-    if (firstFill || !el.dataset.v || el.dataset.v !== String(paisa)) {
+    if (hidden) { el.textContent = MASK; el.classList.remove('pop'); delete el.dataset.v; return; }
+    if (firstFill || !el.dataset.v || el.dataset.v !== String(paisa) || el.textContent === MASK) {
       AF.countUp(el, paisa);
       el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
     }
