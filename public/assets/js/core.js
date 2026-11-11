@@ -169,7 +169,16 @@
     function esc(e) { if (e.key === 'Escape') { api.close(); } }
     document.addEventListener('keydown', esc);
     back.addEventListener('click', function (e) { if (e.target === back || e.target.closest('[data-x]')) { api.close(); } });
-    document.body.appendChild(back); AF.apply(back); return api;
+    document.body.appendChild(back); AF.apply(back);
+    // Scroll modal to top and prevent body scroll while open
+    var modal = back.querySelector('.modal');
+    if (modal) { modal.scrollTop = 0; }
+    var prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    var origClose = api.close;
+    api.close = function () { document.body.style.overflow = prevOverflow; origClose(); };
+    back.addEventListener('click', function (e) { if (e.target === back) { document.body.style.overflow = prevOverflow; } });
+    return api;
   };
 
   /* ---------- formatting ---------- */

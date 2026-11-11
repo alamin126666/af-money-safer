@@ -24,10 +24,23 @@ final class PaymentService
     public static function limits(): array
     {
         return [
-            'minDeposit' => (int)Settings::get('minDeposit'), 'maxDeposit' => (int)Settings::get('maxDeposit'),
-            'minWithdraw' => (int)Settings::get('minWithdraw'), 'maxWithdraw' => (int)Settings::get('maxWithdraw'),
-            'depositFeePercent' => (float)Settings::get('depositFeePercent'),
+            'minDeposit'  => (int)Settings::get('minDeposit'),
+            'maxDeposit'  => (int)Settings::get('maxDeposit'),
+            'minWithdraw' => (int)Settings::get('minWithdraw'),
+            'maxWithdraw' => (int)Settings::get('maxWithdraw'),
+            'depositFeePercent'  => (float)Settings::get('depositFeePercent'),
             'withdrawFeePercent' => (float)Settings::get('withdrawFeePercent'),
+            // Per-method minimums sent to frontend so it can show the right placeholder/hint
+            'methodLimits' => [
+                'bKash' => [
+                    'minDeposit'  => (int)(Config::get('limits.bkash_min_deposit')  ?? Settings::get('minDeposit')),
+                    'minWithdraw' => (int)(Config::get('limits.bkash_min_withdraw') ?? Settings::get('minWithdraw')),
+                ],
+                'Nagad' => [
+                    'minDeposit'  => (int)(Config::get('limits.nagad_min_deposit')  ?? Settings::get('minDeposit')),
+                    'minWithdraw' => (int)(Config::get('limits.nagad_min_withdraw') ?? Settings::get('minWithdraw')),
+                ],
+            ],
         ];
     }
 
@@ -52,13 +65,30 @@ final class PaymentService
     }
 
     // ================================================================ DEPOSIT
+    /** Return the effective min-deposit for a given method (bKash=300, Nagad=100). */
+    private static function methodMinDeposit(string $method): int
+    {
+        $key = strtolower($method) . '_min_deposit';
+        $v   = Config::get('limits.' . $key);
+        return $v !== null ? (int)$v : (int)Settings::get('minDeposit');
+    }
+
+    /** Return the effective min-withdraw for a given method. */
+    private static function methodMinWithdraw(string $method): int
+    {
+        $key = strtolower($method) . '_min_withdraw';
+        $v   = Config::get('limits.' . $key);
+        return $v !== null ? (int)$v : (int)Settings::get('minWithdraw');
+    }
+
     public static function createDeposit(array $user, array $in): array
     {
         RateLimit::hit("dep_user:{$user['uid']}", 10, 3600);
         $amount = self::wholeTaka($in['amount'] ?? null);
         $method = self::method($in['method'] ?? null);
         $L = self::limits();
-        self::range($amount, $L['minDeposit'], $L['maxDeposit']);
+        $methodMin = self::methodMinDeposit($method);
+        self::range($amount, $methodMin, $L['maxDeposit']);
 
         [$txId, $orderId] = WalletService::createDeposit($user['uid'], Money::toPoisha($amount), $method);
 
@@ -102,7 +132,8 @@ final class PaymentService
         $method = self::method($in['method'] ?? null);
         $amount = self::wholeTaka($in['amount'] ?? null);
         $L = self::limits();
-        self::range($amount, $L['minWithdraw'], $L['maxWithdraw']);
+        $methodMin = self::methodMinWithdraw($method);
+        self::range($amount, $methodMin, $L['maxWithdraw']);
         $wallet = self::normalizeWallet($in['walletNo'] ?? '');
         $holder = Validator::name(is_string($in['holderName'] ?? null) ? $in['holderName'] : '');
         Validator::failIf($holder === null ? ['holderName' => 'FIELD_NAME_INVALID'] : []);
