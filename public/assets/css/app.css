@@ -478,7 +478,7 @@ img{max-width:100%}
 
 /* ── Modal & toast ── */
 .modal-back{
-  position:fixed;inset:0;background:rgba(4,18,12,.55);z-index:50;
+  position:fixed;inset:0;background:rgba(4,18,12,.55);z-index:4000;
   display:flex;align-items:flex-end;justify-content:center;animation:fade .2s;overflow:hidden;padding:0;
   backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
 }
@@ -494,7 +494,7 @@ img{max-width:100%}
 @keyframes fade{from{opacity:0}}
 @keyframes modalUp{from{transform:translateY(60px) scale(.96);opacity:0}to{transform:none;opacity:1}}
 #toasts{
-  position:fixed;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:100;
+  position:fixed;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:4100;
   display:flex;flex-direction:column;gap:8px;width:min(94vw,440px);pointer-events:none;
 }
 .toast{
