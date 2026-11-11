@@ -44,6 +44,8 @@ final class HistoryService
                 $n++; $scanned++;
                 $d = $doc->data() + ['id' => $doc->id()];
                 $cursor = $last = (int)$d['createdAtMs'];
+                // Skip soft-deleted (hidden by user)
+                if (!empty($d['hiddenByUser'])) { continue; }
                 if (($type && $d['type'] !== $type) || ($method && $d['method'] !== $method) || ($status && $d['status'] !== $status)) { continue; }
                 if (count($items) >= $limit) { $more = true; break; }
                 $items[] = WalletService::publicTx($d);

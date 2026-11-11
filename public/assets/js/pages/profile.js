@@ -4,6 +4,7 @@ AF.ready(function () {
     if (!p) { return; }
     var n = $('#pName'); n.classList.remove('skeleton-text'); n.textContent = p.fullName; $('#pEmail').textContent = p.email;
     $('#adminLink').hidden = !p.isAdmin;
+    var aBtn = $('#adminLinkBtn'); if (aBtn) { aBtn.hidden = !p.isAdmin; }
     $('#pId').textContent = p.accountId; $('#pDate').textContent = AF.date(p.registeredAtMs);
     $('#avatar').innerHTML = AF.avatar(p.avatar, 96);
     var a = $('#topAvatar'); if (a) { a.removeAttribute('data-icon'); a.innerHTML = AF.avatar(p.avatar, 40); }

@@ -152,3 +152,190 @@ background:var(--card);color:var(--text);border-radius:12px;cursor:pointer;font:
 .tbl{width:100%;border-collapse:collapse;font-size:.85rem}.tbl td,.tbl th{padding:8px 6px;border-top:1px solid var(--border);text-align:left;vertical-align:top}
 .scroll-x{overflow-x:auto}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ═══════════════════════════════════════════════════════════
+   ENHANCED UI/UX — animations, payment logos, profile fixes
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── HD page entrance ── */
+@keyframes pgin{from{opacity:0;transform:translateY(12px) scale(.995)}to{opacity:1;transform:none}}
+@keyframes pgout{to{opacity:0;transform:translateY(-8px) scale(.998)}}
+
+/* ── Card hover lift ── */
+.card{transition:box-shadow .2s,transform .2s}
+.card:not(.balance-card):hover{box-shadow:0 12px 36px rgba(15,60,45,.13);transform:translateY(-1px)}
+[data-theme=dark] .card:not(.balance-card):hover{box-shadow:0 12px 36px rgba(0,0,0,.55)}
+
+/* ── Action card bigger hover ── */
+.action-card{transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
+.action-card:hover{transform:translateY(-3px) scale(1.012);box-shadow:0 16px 40px rgba(15,60,45,.14)}
+.action-card:active{transform:scale(.975)}
+
+/* ── Button spring press ── */
+.btn{transition:transform .14s cubic-bezier(.34,1.56,.64,1),opacity .2s,box-shadow .18s}
+.btn-primary:hover{box-shadow:0 10px 28px rgba(15,138,100,.4)}
+.btn-primary:active{transform:scale(.96)}
+.btn-sm{padding:9px 14px;font-size:.88rem;border-radius:12px}
+
+/* ── Balance card shimmer ── */
+.balance-card::before{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.12) 50%,transparent 60%);background-size:200% 100%;animation:shimmer 3.5s ease infinite;border-radius:inherit;pointer-events:none}
+@keyframes shimmer{0%,100%{background-position:200% 0}60%{background-position:-200% 0}}
+
+/* ── Balance card decorative circles ── */
+.balance-card::after{content:"";position:absolute;right:-50px;top:-50px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.07)}
+.balance-card .bc-circle2{position:absolute;left:-30px;bottom:-40px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,.05);pointer-events:none}
+
+/* ── Amount counter animation ── */
+.amount,.amount-sm{transition:transform .3s cubic-bezier(.34,1.56,.64,1)}
+.amount.pop{animation:amtpop .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes amtpop{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+
+/* ── Transaction row ── */
+.tx{transition:background .15s,transform .15s}
+.tx:hover{background:color-mix(in srgb,var(--primary) 5%,transparent);border-radius:14px;padding-left:8px;padding-right:8px;margin:0 -8px;transform:translateX(2px)}
+.tx-ic{transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.tx:hover .tx-ic{transform:scale(1.12)}
+
+/* ── Pill pulse for pending ── */
+.pill.pending{animation:pillpulse 2s ease infinite}
+@keyframes pillpulse{0%,100%{opacity:1}50%{opacity:.65}}
+
+/* ── Menu item hover ── */
+.menu-item{transition:background .15s,padding-left .15s}
+.menu-item:hover{background:color-mix(in srgb,var(--primary) 6%,transparent);padding-left:12px;border-radius:14px}
+
+/* ── Profile page sticky bottom actions ── */
+.profile-actions{
+  position:fixed;left:0;right:0;bottom:0;z-index:26;
+  background:color-mix(in srgb,var(--card) 95%,transparent);
+  backdrop-filter:blur(16px);
+  border-top:1px solid var(--border);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  display:flex;gap:10px;
+  max-width:520px;
+  margin:0 auto;
+}
+.profile-actions .btn{flex:1}
+/* push profile page content above sticky footer */
+.page-profile .wrap{padding-bottom:calc(80px + env(safe-area-inset-bottom))}
+
+/* ── Payment method logos ── */
+.method-logo{height:28px;width:auto;object-fit:contain;display:block}
+.method{gap:10px;padding:14px 10px}
+.method .method-logo{transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.method:hover .method-logo{transform:scale(1.08)}
+
+/* bKash brand pill */
+.bkash-logo{display:inline-flex;align-items:center;gap:5px;background:#e2136e;color:#fff;border-radius:8px;padding:4px 10px;font:700 .88rem system-ui}
+.bkash-logo-icon{width:20px;height:20px;border-radius:4px;background:#fff;display:grid;place-items:center}
+.bkash-logo-icon span{color:#e2136e;font:700 .68rem system-ui}
+
+/* Nagad brand pill */
+.nagad-logo{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#f6921e,#e35a00);color:#fff;border-radius:8px;padding:4px 10px;font:700 .88rem system-ui}
+.nagad-logo-icon{width:20px;height:20px;border-radius:50%;background:#fff;display:grid;place-items:center}
+.nagad-logo-icon span{color:#f6921e;font:700 .58rem system-ui}
+
+/* Method selector uses brand colors */
+.method[data-method="bKash"]{border-color:color-mix(in srgb,#e2136e 30%,var(--border))}
+.method[data-method="bKash"].sel{border-color:#e2136e;background:color-mix(in srgb,#e2136e 10%,transparent)}
+.method[data-method="Nagad"]{border-color:color-mix(in srgb,#f6921e 30%,var(--border))}
+.method[data-method="Nagad"].sel{border-color:#f6921e;background:color-mix(in srgb,#f6921e 10%,transparent)}
+
+/* ── Dot icons for methods — enhanced ── */
+.dot.bk{background:#e2136e;box-shadow:0 2px 8px rgba(226,19,110,.4)}
+.dot.ng{background:#f6921e;box-shadow:0 2px 8px rgba(246,146,30,.4)}
+.dot{width:14px;height:14px;border-radius:50%;transition:transform .2s}
+
+/* ── Custom date range picker ── */
+.drc-wrap{padding:4px 0 8px}
+.drc-info{text-align:center;font-weight:700;padding:10px;background:color-mix(in srgb,var(--primary) 10%,transparent);border-radius:12px;color:var(--primary);margin-bottom:12px;font-size:.95rem;letter-spacing:.3px}
+.drc-presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.drc-preset{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--input);color:var(--text);font:600 .85rem inherit;cursor:pointer;transition:all .15s}
+.drc-preset:hover{border-color:var(--primary);color:var(--primary);background:color-mix(in srgb,var(--primary) 8%,transparent)}
+.drc-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.drc-nav-btn{background:var(--input);border:1px solid var(--border);border-radius:10px;width:36px;height:36px;cursor:pointer;color:var(--text);font-size:1.3rem;line-height:1;display:grid;place-items:center;transition:background .15s}
+.drc-nav-btn:hover{background:color-mix(in srgb,var(--primary) 12%,transparent);border-color:var(--primary);color:var(--primary)}
+.drc-month{font:700 1rem inherit;color:var(--text)}
+.drc-heads{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.drc-heads span{text-align:center;font:600 .75rem inherit;color:var(--muted);padding:4px 0}
+.drc-days{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.drc-day{height:38px;border-radius:10px;border:1.5px solid transparent;background:transparent;color:var(--text);font:500 .9rem inherit;cursor:pointer;transition:all .15s;display:grid;place-items:center}
+.drc-day:hover:not(:disabled){background:color-mix(in srgb,var(--primary) 12%,transparent);border-color:var(--primary);color:var(--primary)}
+.drc-sel{background:var(--primary)!important;color:#fff!important;border-color:var(--primary)!important;font-weight:700}
+.drc-range{background:color-mix(in srgb,var(--primary) 14%,transparent);border-radius:0;color:var(--primary)}
+.drc-sel-s{border-radius:10px 0 0 10px}
+.drc-sel-e{border-radius:0 10px 10px 0}
+.drc-sel-s.drc-sel-e{border-radius:10px}
+.drc-today{font-weight:800;color:var(--primary)}
+.drc-today.drc-sel{color:#fff!important}
+.drc-disabled{color:var(--muted)!important;opacity:.4;cursor:not-allowed}
+.drc-actions{display:flex;gap:10px;margin-top:16px}
+.drc-actions .btn{flex:1}
+
+/* ── Filter button with icon ── */
+#hFilterBtn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:12px;border:1px solid var(--border);background:var(--input);color:var(--text);font:600 .88rem inherit;cursor:pointer;margin-bottom:6px;transition:all .15s}
+#hFilterBtn:hover{border-color:var(--primary);color:var(--primary)}
+
+/* ── Splash logo animation ── */
+.splash-logo{animation:logobounce 2.5s cubic-bezier(.36,.07,.19,.97) infinite}
+@keyframes logobounce{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-10px) scale(1.04)}55%{transform:translateY(-6px) scale(1.02)}70%{transform:translateY(-10px) scale(1.03)}}
+
+/* ── Loader bar glow ── */
+.loader i{background:var(--grad);box-shadow:0 0 12px rgba(15,138,100,.5)}
+
+/* ── Topbar brand animation ── */
+.brand-name{transition:letter-spacing .3s}
+.topbar:hover .brand-name{letter-spacing:1.5px}
+
+/* ── Toast slide in with spring ── */
+@keyframes tin{from{opacity:0;transform:translateY(-20px) scale(.9)}to{opacity:1;transform:none}}
+
+/* ── Modal backdrop blur ── */
+.modal-back{backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.modal{animation:modalup .3s cubic-bezier(.34,1.4,.64,1)}
+@keyframes modalup{from{transform:translateY(60px) scale(.96);opacity:0}to{transform:none;opacity:1}}
+@media(min-width:600px){@keyframes modalup{from{transform:scale(.9) translateY(20px);opacity:0}to{transform:none;opacity:1}}}
+
+/* ── Input focus glow ── */
+.input{transition:border-color .2s,box-shadow .25s,background .2s}
+.input:focus-within{box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 15%,transparent)}
+
+/* ── Segment tabs indicator ── */
+.seg-tabs button,.seg button{transition:all .2s cubic-bezier(.34,1.4,.64,1)}
+.seg-tabs button.on,.seg button.on{transform:scale(1.03)}
+
+/* ── Empty state icon bounce ── */
+.empty::before{content:"📋";display:block;font-size:2rem;margin-bottom:6px;animation:emptyb 3s ease infinite}
+@keyframes emptyb{0%,100%{transform:scale(1)}50%{transform:scale(1.1) rotate(5deg)}}
+
+/* ── History filter date button active state ── */
+#hDateBtn{transition:all .15s;text-align:left}
+#hDateBtn:hover{border-color:var(--primary);color:var(--primary)}
+
+/* ── Scroll reveal for cards ── */
+@keyframes cardin{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.card-reveal{animation:cardin .35s ease both}
+.card-reveal:nth-child(1){animation-delay:.05s}
+.card-reveal:nth-child(2){animation-delay:.1s}
+.card-reveal:nth-child(3){animation-delay:.15s}
+.card-reveal:nth-child(4){animation-delay:.2s}
+
+/* ── Balance card sparkle dots ── */
+.balance-card .sparkle{position:absolute;border-radius:50%;background:rgba(255,255,255,.25);animation:sparkle 4s ease infinite}
+@keyframes sparkle{0%,100%{transform:scale(0);opacity:0}50%{transform:scale(1);opacity:1}}
+
+/* ── Admin panel improvements ── */
+.tbl tr:hover td{background:color-mix(in srgb,var(--primary) 5%,transparent)}
+.tbl td,.tbl th{transition:background .15s}
+
+/* ── Status pill enhanced ── */
+.pill{transition:transform .15s}
+.tx:hover .pill{transform:scale(1.08)}
+
+/* ── Notification badge pulse ── */
+.badge{animation:badgepop .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes badgepop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ── Skip/filter btn-sm utility ── */
+.btn-sm{padding:9px 14px;font-size:.88rem;border-radius:12px;height:auto}
+

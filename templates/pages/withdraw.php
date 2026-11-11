@@ -5,8 +5,13 @@
   <form id="f" novalidate>
     <div class="field"><span data-i18n="payment_method"></span>
       <div class="methods" id="methods">
-        <button type="button" class="method sel" data-m="bKash"><i class="dot bk"></i>bKash</button>
-        <button type="button" class="method" data-m="Nagad"><i class="dot ng"></i>Nagad</button></div></div>
+        <button type="button" class="method sel" data-m="bKash" data-method="bKash">
+          <span class="bkash-logo"><span class="bkash-logo-icon"><span>b</span></span>bKash</span>
+        </button>
+        <button type="button" class="method" data-m="Nagad" data-method="Nagad">
+          <span class="nagad-logo"><span class="nagad-logo-icon"><span>N</span></span>Nagad</span>
+        </button>
+      </div></div>
     <label class="field"><span data-i18n="amount"></span>
       <div class="input big"><span class="cur">৳</span><input type="text" name="amount" inputmode="numeric" autocomplete="off" placeholder="0" maxlength="9" required></div></label>
     <label class="field"><span data-i18n="wallet_number"></span>

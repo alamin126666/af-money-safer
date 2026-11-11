@@ -9,8 +9,13 @@
     <p class="limits muted" id="limits"></p>
     <div class="field"><span data-i18n="payment_method"></span>
       <div class="methods" id="methods">
-        <button type="button" class="method sel" data-m="bKash"><i class="dot bk"></i>bKash</button>
-        <button type="button" class="method" data-m="Nagad"><i class="dot ng"></i>Nagad</button></div></div>
+        <button type="button" class="method sel" data-m="bKash" data-method="bKash">
+          <span class="bkash-logo"><span class="bkash-logo-icon"><span>b</span></span>bKash</span>
+        </button>
+        <button type="button" class="method" data-m="Nagad" data-method="Nagad">
+          <span class="nagad-logo"><span class="nagad-logo-icon"><span>N</span></span>Nagad</span>
+        </button>
+      </div></div>
     <div class="note"><span data-icon="info"></span><span data-i18n="gateway_info"></span></div>
     <button class="btn btn-primary btn-block" id="submit" type="submit"><span data-i18n="deposit_btn"></span></button>
   </form>

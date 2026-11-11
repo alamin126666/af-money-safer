@@ -104,4 +104,7 @@ return [
         'from_name'  => env('BREVO_FROM_NAME', env('SMTP_FROM_NAME', 'AF MONEY SAFER')),
     ],
     'cron_secret' => env('CRON_SECRET'),
+    'admin' => [
+        'setup_token' => env('ADMIN_SETUP_TOKEN', ''),
+    ],
 ];
