@@ -8,7 +8,7 @@
 
   AF.esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
 
-  /* ---------- custom SVG icon system (24x24, stroke) ---------- */
+  /* ---------- custom SVG icon system (24x24, stroke) — hand-drawn, no icon font ---------- */
   var P = {
     home: '<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5v-5h4v5"/>',
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 20.5c1.2-4 4.2-6 8-6s6.8 2 8 6"/>',
@@ -35,7 +35,26 @@
     copy: '<rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v7A2.5 2.5 0 0 0 6.5 16H8"/>',
     trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/>',
     filter: '<line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>',
-    calendar: '<rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/>'
+    calendar: '<rect x="3" y="4" width="18" height="17" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    /* --- added in v2 --- */
+    history: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3.5 2"/>',
+    chart: '<path d="M3 3v18h18"/><path d="M7 15v-3M12 15V7M17 15v-5"/>',
+    settings: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.7M12 18.5v2.7M2.8 12h2.7M18.5 12h2.7M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/>',
+    'shield-check': '<path d="M12 3 20 6v6c0 4.5-3.2 8-8 9.5C7.2 20 4 16.5 4 12V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+    sparkle: '<path d="M12 3.5 13.8 9l5.5 1.8-5.5 1.8L12 18l-1.8-5.4L4.7 10.8 10.2 9z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>',
+    send: '<path d="M21.5 2.5 11 13"/><path d="M21.5 2.5 14.8 21.5l-3.8-8.5-8.5-3.8z"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20.5 20.5-4-4"/>',
+    refresh: '<path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
+    receipt: '<path d="M5 3h14v18l-2.3-1.6-2.4 1.6-2.3-1.6L9.7 21l-2.4-1.6L5 21z"/><path d="M9 8h6M9 12h6"/>',
+    grid: '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
+    phone: '<path d="M5 3.5h3.5l1.8 4.5-2.3 1.6a12.5 12.5 0 0 0 6.4 6.4l1.6-2.3 4.5 1.8V19a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 3 5.7a2 2 0 0 1 2-2.2z"/>',
+    star: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-3-5.4 3 1.1-6L3.2 9.4l6.1-.8z"/>',
+    'arrow-right': '<path d="M4 12h15.5"/><path d="m14 6 6 6-6 6"/>',
+    card: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/><path d="M6 15h4"/>',
+    download: '<path d="M12 3.5V15"/><path d="M6.8 10.5 12 15.7l5.2-5.2"/><path d="M4 19.5h16"/>',
+    zap: '<path d="M13 2.5 4.5 14H11l-1 7.5L18.5 10H12z"/>'
   };
   AF.icon = function (n, s) { s = s || 20; return '<svg class="ic" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || '') + '</svg>'; };
   AF.logo = function (s) { return '<img src="/assets/img/logo.svg" width="' + s + '" height="' + s + '" alt="AF MONEY SAFER">'; };
@@ -192,6 +211,51 @@
   AF.digits = function (input, max) { input.addEventListener('input', function () { input.value = input.value.replace(/\D/g, '').slice(0, max || 9); }); };
   AF.ready = function (fn) { if (window.AF_READY) { fn(); } else { document.addEventListener('af:ready', fn, { once: true }); } };
 
+  /* ---------- motion helpers (v2) ---------- */
+  var reducedMotion = function () { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+  /** Animate a money element to a paisa value, rendering "৳" + AF.money(). Instant when reduced motion is on. */
+  AF.countUp = function (el, paisa, ms) {
+    if (!el) { return; }
+    var target = Number(paisa) || 0;
+    var render = function (v) { el.textContent = '৳' + AF.money(Math.round(v)); };
+    if (reducedMotion()) { render(target); return; }
+    var from = 0;
+    var cur = (el.textContent || '').replace(/[^\d.,]/g, '').replace(/,/g, '');
+    if (cur) { var parsed = parseFloat(cur); if (!isNaN(parsed)) { from = parsed * 100; } }
+    if (from === target) { render(target); return; }
+    var dur = ms || 650, start = null;
+    var step = function (t) {
+      if (start == null) { start = t; }
+      var k = Math.min(1, (t - start) / dur), e = 1 - Math.pow(1 - k, 3);
+      render(from + (target - from) * e);
+      if (k < 1) { requestAnimationFrame(step); }
+    };
+    requestAnimationFrame(step);
+  };
+  /** Scroll-reveal: observes .reveal elements and adds .in when visible. Safe to call repeatedly. */
+  AF.reveal = function (root) {
+    var els = $$('.reveal:not(.in)', root || document);
+    if (!els.length) { return; }
+    if (reducedMotion() || !('IntersectionObserver' in window)) { els.forEach(function (e) { e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8px 0px' });
+    els.forEach(function (e) { io.observe(e); });
+  };
+  /** Button ripple: appends a span.ripple at the click point, removed after the animation. */
+  function ripple(e) {
+    var t = e.target.closest && e.target.closest('.btn,.icon-btn,.chip,.method,.action-card,.menu-item,.seg-tabs button,.tabs button,.numpad button');
+    if (!t) { return; }
+    var r = t.getBoundingClientRect();
+    var d = Math.max(r.width, r.height) * 1.1;
+    var s = document.createElement('span'); s.className = 'ripple';
+    s.style.width = s.style.height = d + 'px';
+    s.style.left = (e.clientX - r.left - d / 2) + 'px';
+    s.style.top = (e.clientY - r.top - d / 2) + 'px';
+    t.appendChild(s);
+    setTimeout(function () { s.remove(); }, 650);
+  }
+
   /* ---------- logged-in snapshot (balance, limits, avatar, unread) ---------- */
   var mePromise = null;
   AF.me = function (force) {
@@ -206,8 +270,9 @@
 
   /* ---------- init ---------- */
   function init() {
-    AF.apply(); AF.syncThemeIcon();
+    AF.apply(); AF.syncThemeIcon(); AF.reveal();
     document.addEventListener('click', function (e) {
+      ripple(e);
       var a = e.target.closest('[data-action]');
       if (a) { var k = a.getAttribute('data-action'); if (k === 'lang') { AF.setLang(lang === 'bn' ? 'en' : 'bn'); } if (k === 'theme') { AF.setTheme(AF.theme() === 'dark' ? 'light' : 'dark'); } return; }
       var eye = e.target.closest('[data-eye]');

@@ -1,1 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#12b886"/><stop offset="1" stop-color="#0b3d2e"/></linearGradient></defs><path d="M32 3l22 8v17c0 15-9.5 27-22 33C19.500 55 10 43 10 28V11z" fill="url(#g)"/><circle cx="32" cy="30" r="12" fill="none" stroke="#f5c451" stroke-width="3.500"/><path d="M32 23v14M27.500 27.500c0-2 2-3 4.500-3s4.500 1 4.500 3-2 2.800-4.500 3.500-4.500 1.500-4.500 3.500 2 3 4.500 3 4.500-1 4.500-3" fill="none" stroke="#f5c451" stroke-width="2.600" stroke-linecap="round"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AF MONEY SAFER">
+  <defs>
+    <linearGradient id="ev-shield" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d39b"/>
+      <stop offset=".45" stop-color="#0f8a64"/>
+      <stop offset="1" stop-color="#0b3d2e"/>
+    </linearGradient>
+    <linearGradient id="ev-gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset=".55" stop-color="#f5c451"/>
+      <stop offset="1" stop-color="#e8a91c"/>
+    </linearGradient>
+    <linearGradient id="ev-inner" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0e5c44"/>
+      <stop offset="1" stop-color="#082e22"/>
+    </linearGradient>
+  </defs>
+  <path d="M32 2.5 54.5 11v16.5C54.5 43.5 45 55.5 32 61.5 19 55.5 9.5 43.5 9.5 27.5V11Z" fill="url(#ev-shield)"/>
+  <path d="M32 6.5 50.5 13.6v13.9C50.5 41.5 42.5 51.8 32 57 21.5 51.8 13.5 41.5 13.5 27.5V13.6Z" fill="url(#ev-inner)"/>
+  <path d="M32 6.5 50.5 13.6v13.9C50.5 41.5 42.5 51.8 32 57 21.5 51.8 13.5 41.5 13.5 27.5V13.6Z" fill="none" stroke="url(#ev-gold)" stroke-width="1.6" opacity=".9"/>
+  <path d="M32 17.5c-7.5 0-12.5 4.6-12.5 11.2 0 4.6 3 8.3 7.3 10.1" fill="none" stroke="#f5c451" stroke-width="1.4" opacity=".45" stroke-linecap="round"/>
+  <g fill="none" stroke="url(#ev-gold)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M24.5 25.5h15"/>
+    <path d="M24.5 30.5h15"/>
+    <path d="M38.5 22.5c-1.8-2.6-4.4-3.8-7-3.5-3.4.4-5.5 2.6-5.5 5.7 0 4.4 4.6 4.9 7.4 6.4 2.6 1.4 5.6 2.4 5.6 6.1 0 3.5-2.7 5.9-6.4 5.9-3 .3-5.9-1-7.6-3.6"/>
+    <path d="M35.5 18.5v5.5M35.5 40v5.5"/>
+  </g>
+  <path d="M49 14.5l1.1 2.6 2.6 1.1-2.6 1.1L49 21.9l-1.1-2.6-2.6-1.1 2.6-1.1Z" fill="#f5c451"/>
+  <path d="M15.5 43.5l.8 1.9 1.9.8-1.9.8-.8 1.9-.8-1.9-1.9-.8 1.9-.8Z" fill="#f5c451" opacity=".85"/>
+</svg>

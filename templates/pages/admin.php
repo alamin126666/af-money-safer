@@ -1,4 +1,7 @@
-<h2>Admin panel</h2>
+<div class="page-head">
+  <p class="eyebrow">Admin</p>
+  <h2>Admin panel</h2>
+</div>
 <div class="tabs" id="tabs">
   <button data-t="overview" class="on">Overview</button><button data-t="users">Users</button><button data-t="tx">Transactions</button>
   <button data-t="settings">Settings</button><button data-t="audit">Audit</button>

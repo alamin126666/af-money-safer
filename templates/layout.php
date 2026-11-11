@@ -17,6 +17,7 @@ $navHome = in_array($name, ['dashboard', 'deposit', 'withdraw', 'history', 'noti
 <script src="/assets/js/theme-init.js"></script>
 </head>
 <body class="page-<?= $h($name) ?><?= $o['app'] ? ' has-nav' : '' ?>">
+<a class="skip-link" href="#main">Skip to content</a>
 <div id="toasts" aria-live="polite"></div>
 <?php if ($o['app']): ?>
 <header class="topbar">
@@ -28,6 +29,17 @@ $navHome = in_array($name, ['dashboard', 'deposit', 'withdraw', 'history', 'noti
     <a class="icon-btn avatar-btn" href="/profile.php" aria-label="Profile"><span id="topAvatar" data-icon="user"></span></a>
   </nav>
 </header>
+<aside class="sidebar" aria-label="Main">
+  <nav class="side-nav">
+    <a href="/dashboard.php" class="<?= $name === 'dashboard' ? 'active' : '' ?>"><span data-icon="home"></span><span data-i18n="nav_home"></span></a>
+    <a href="/deposit.php" class="<?= $name === 'deposit' ? 'active' : '' ?>"><span data-icon="deposit"></span><span data-i18n="deposit"></span></a>
+    <a href="/withdraw.php" class="<?= $name === 'withdraw' ? 'active' : '' ?>"><span data-icon="withdraw"></span><span data-i18n="withdraw"></span></a>
+    <a href="/history.php" class="<?= $name === 'history' ? 'active' : '' ?>"><span data-icon="history"></span><span data-i18n="history"></span></a>
+    <a href="/notifications.php" class="<?= $name === 'notifications' ? 'active' : '' ?>"><span data-icon="bell"></span><span data-i18n="notifications"></span></a>
+    <a href="/profile.php" class="<?= $name === 'profile' ? 'active' : '' ?>"><span data-icon="user"></span><span data-i18n="nav_profile"></span></a>
+  </nav>
+  <div class="side-foot"><span data-icon="shield-check"></span><span data-i18n="splash_tag"></span></div>
+</aside>
 <?php else: ?>
 <div class="float-tools">
   <button class="icon-btn" data-action="lang" aria-label="Language"><span data-icon="globe"></span><b class="lang-tag"></b></button>
@@ -39,8 +51,11 @@ $navHome = in_array($name, ['dashboard', 'deposit', 'withdraw', 'history', 'noti
 </main>
 <?php if ($o['app']): ?>
 <nav class="bottom-nav" aria-label="Main">
-  <a href="/dashboard.php" class="<?= $navHome ? 'active' : '' ?>"><span data-icon="home" data-size="24"></span><span data-i18n="nav_home"></span></a>
-  <a href="/profile.php" class="<?= $name === 'profile' ? 'active' : '' ?>"><span data-icon="user" data-size="24"></span><span data-i18n="nav_profile"></span></a>
+  <a href="/dashboard.php" class="<?= $name === 'dashboard' ? 'active' : '' ?>"><span data-icon="home" data-size="24"></span><span data-i18n="nav_home"></span><span class="nav-dot"></span></a>
+  <a href="/deposit.php" class="<?= $name === 'deposit' ? 'active' : '' ?>"><span data-icon="deposit" data-size="24"></span><span data-i18n="deposit"></span><span class="nav-dot"></span></a>
+  <a href="/withdraw.php" class="<?= $name === 'withdraw' ? 'active' : '' ?>"><span data-icon="withdraw" data-size="24"></span><span data-i18n="withdraw"></span><span class="nav-dot"></span></a>
+  <a href="/history.php" class="<?= $name === 'history' ? 'active' : '' ?>"><span data-icon="history" data-size="24"></span><span data-i18n="history"></span><span class="nav-dot"></span></a>
+  <a href="/profile.php" class="<?= $name === 'profile' ? 'active' : '' ?>"><span data-icon="user" data-size="24"></span><span data-i18n="nav_profile"></span><span class="nav-dot"></span></a>
 </nav>
 <?php endif; ?>
 <script src="/assets/js/i18n.js?v=<?= $v('/assets/js/i18n.js') ?>" defer></script>

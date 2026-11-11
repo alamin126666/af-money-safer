@@ -1,6 +1,7 @@
-<section class="card profile-head">
+<section class="card profile-head card-reveal">
   <div class="avatar-xl" id="avatar"></div>
   <h2 id="pName" class="skeleton-text">&nbsp;</h2><p class="muted" id="pEmail"></p>
+  <span class="verified-badge"><span data-icon="shield-check"></span>Verified</span>
 </section>
 <section class="card info-list">
   <div class="row"><span class="muted" data-i18n="account_id"></span><b id="pId">—</b></div>
@@ -9,11 +10,11 @@
 <section class="card">
   <h3 data-i18n="edit_profile"></h3>
   <div class="menu">
-    <button class="menu-item" data-act="name"><span data-icon="user"></span><span data-i18n="change_name"></span><span data-icon="chevron"></span></button>
-    <button class="menu-item" data-act="email"><span data-icon="mail"></span><span data-i18n="change_email"></span><span data-icon="chevron"></span></button>
-    <button class="menu-item" data-act="password"><span data-icon="lock"></span><span data-i18n="change_password"></span><span data-icon="chevron"></span></button>
-    <button class="menu-item" data-act="photo"><span data-icon="camera"></span><span data-i18n="change_photo"></span><span data-icon="chevron"></span></button>
-    <button class="menu-item" data-act="avatar"><span data-icon="user"></span><span data-i18n="choose_avatar"></span><span data-icon="chevron"></span></button>
+    <button class="menu-item" data-act="name"><span class="m-ic" data-icon="user"></span><span data-i18n="change_name"></span><span class="m-chev" data-icon="chevron"></span></button>
+    <button class="menu-item" data-act="email"><span class="m-ic" data-icon="mail"></span><span data-i18n="change_email"></span><span class="m-chev" data-icon="chevron"></span></button>
+    <button class="menu-item" data-act="password"><span class="m-ic" data-icon="lock"></span><span data-i18n="change_password"></span><span class="m-chev" data-icon="chevron"></span></button>
+    <button class="menu-item" data-act="photo"><span class="m-ic" data-icon="camera"></span><span data-i18n="change_photo"></span><span class="m-chev" data-icon="chevron"></span></button>
+    <button class="menu-item" data-act="avatar"><span class="m-ic" data-icon="user"></span><span data-i18n="choose_avatar"></span><span class="m-chev" data-icon="chevron"></span></button>
   </div>
   <input type="file" id="photoFile" accept="image/jpeg,image/png,image/webp" hidden>
 </section>
