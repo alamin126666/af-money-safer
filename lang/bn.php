@@ -91,7 +91,7 @@ return [
     'FORBIDDEN' => 'এই কাজের অনুমতি আপনার নেই।',
     'WRONG_PASSWORD' => 'পাসওয়ার্ড সঠিক নয়।',
     'INVALID_IMAGE' => 'সঠিক JPG, PNG অথবা WebP ছবি দিন।',
-    'FILE_TOO_LARGE' => 'ছবির আকার ২ MB-এর বেশি।',
+    'FILE_TOO_LARGE' => 'ছবির আকার ৭ MB-এর বেশি।',
     'REASON_REQUIRED' => 'সঠিক কারণ লিখতে হবে।',
     'FIELD_EMAIL_SAME' => 'এটি আপনার বর্তমান ইমেইল।',
     'mail.security.email_changed' => 'আপনার অ্যাকাউন্টের ইমেইল ঠিকানা পরিবর্তন করা হয়েছে। এটি আপনি না করে থাকলে এখনই আমাদের সাথে যোগাযোগ করুন।',

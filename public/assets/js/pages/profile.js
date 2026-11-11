@@ -75,7 +75,7 @@ AF.ready(function () {
 
   $('#photoFile').addEventListener('change', function (e) {
     var file = e.target.files[0]; e.target.value = ''; if (!file) { return; }
-    if (file.size > 2 * 1024 * 1024) { AF.toast(AF.lang() === 'bn' ? 'ছবির আকার ২ MB-এর বেশি।' : 'The image is larger than 2 MB.', 'error'); return; }
+    if (file.size > 7 * 1024 * 1024) { AF.toast(AF.lang() === 'bn' ? 'ছবির আকার ৭ MB-এর বেশি।' : 'The image is larger than 7 MB.', 'error'); return; }
     var fd = new FormData(); fd.append('photo', file);
     AF.api('profile/upload-photo.php', fd, { method: 'POST' }).then(function (j) { if (j.success) { AF.toast(j.message, 'success'); load(); } });
   });

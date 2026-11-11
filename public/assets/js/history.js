@@ -109,6 +109,7 @@
       var full = root.getAttribute('data-full') === '1';
       var f = { type: '', startDate: '', endDate: '', method: '', status: '' };
       var cursor = null, loading = false;
+      var seenCursors = {}, pages = 0;
 
       function sel(name, opts) {
         return '<select name="' + name + '"><option value="">' + AF.esc(AF.t(name === 'method' ? 'method' : name === 'status' ? 'status' : 'type')) + ': ' + AF.esc(AF.t('all')) + '</option>'
@@ -134,8 +135,7 @@
           + '</form>'
           + '<div id="hList" style="margin-top:8px"></div>'
           + '<div class="empty" id="hEmpty" hidden>' + AF.esc(AF.t('no_data')) + '</div>'
-          + '<div id="hLoading" class="h-loading" hidden><span class="spin"></span></div>'
-          + '<div class="muted h-count" id="hCount" hidden></div>';
+          + '<div id="hLoading" class="h-loading" hidden><span class="spin"></span></div>';
       }
 
       function updateDateLabel() {
@@ -215,22 +215,24 @@
 
       function load(reset) {
         if (loading) { return; } loading = true;
-        if (reset) { cursor = null; $('#hList', root).innerHTML = ''; }
+        if (reset) { cursor = null; seenCursors = {}; pages = 0; $('#hList', root).innerHTML = ''; }
         var ld = $('#hLoading', root); if (ld) { ld.hidden = false; }
         var body = Object.assign({}, f, { cursor: cursor, limit: full ? 15 : 8 });
         AF.api('history/get.php', body).then(function (j) {
           loading = false; if (!j.success) { if (ld) { ld.hidden = true; } return; }
           var list = $('#hList', root);
+          var before = list.children.length;
           j.data.items.forEach(function (t) { list.appendChild(row(t)); });
+          var added = list.children.length - before;
+          pages++;
           cursor = j.data.next;
           $('#hEmpty', root).hidden = list.children.length > 0;
-          var c = $('#hCount', root);
-          if (c) {
-            c.hidden = list.children.length === 0;
-            c.textContent = (AF.lang() === 'bn' ? 'মোট ' : 'Total ') + AF.num(list.children.length) + (AF.lang() === 'bn' ? ' টি লেনদেন' : ' transactions');
-          }
-          /* No "load more" button: keep paging automatically until every transaction is shown. */
-          if (cursor) { load(false); } else if (ld) { ld.hidden = true; }
+          /* No "load more" button: keep paging automatically until every transaction is shown.
+             Safety stops so the spinner can never loop forever: no new items, a repeated
+             cursor, or 30 pages all end paging and hide the spinner. */
+          var more = cursor && added > 0 && !seenCursors[cursor] && pages < 30;
+          if (more) { seenCursors[cursor] = 1; load(false); }
+          else if (ld) { ld.hidden = true; }
         });
       }
 

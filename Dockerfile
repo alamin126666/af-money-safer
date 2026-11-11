@@ -20,7 +20,7 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/app/public
 COPY docker/apache.conf /etc/apache2/conf-available/afms.conf
 RUN a2enconf afms \
  && sed -ri "s#/var/www/html#${APACHE_DOCUMENT_ROOT}#g" /etc/apache2/sites-available/*.conf \
- && printf 'expose_php=Off\ndisplay_errors=Off\nlog_errors=On\nerror_log=/dev/stderr\nsession.use_strict_mode=1\nupload_max_filesize=3M\npost_max_size=4M\nmemory_limit=256M\ndate.timezone=UTC\n' > /usr/local/etc/php/conf.d/app.ini \
+ && printf 'expose_php=Off\ndisplay_errors=Off\nlog_errors=On\nerror_log=/dev/stderr\nsession.use_strict_mode=1\nupload_max_filesize=8M\npost_max_size=10M\nmemory_limit=256M\ndate.timezone=UTC\n' > /usr/local/etc/php/conf.d/app.ini \
  && chown -R www-data:www-data /var/www/app/storage
 
 # Render injects $PORT

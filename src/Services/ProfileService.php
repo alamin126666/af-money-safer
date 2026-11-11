@@ -144,7 +144,7 @@ final class ProfileService
         RateLimit::hit("photo:{$user['uid']}", 10, 3600);
         $f = $_FILES['photo'] ?? null;
         if (!is_array($f) || ($f['error'] ?? 1) !== UPLOAD_ERR_OK || !is_uploaded_file((string)$f['tmp_name'])) { throw new ApiException('INVALID_IMAGE', 422); }
-        if ((int)$f['size'] > 2 * 1024 * 1024) { throw new ApiException('FILE_TOO_LARGE', 413); }
+        if ((int)$f['size'] > 7 * 1024 * 1024) { throw new ApiException('FILE_TOO_LARGE', 413); }
         $raw = (string)file_get_contents((string)$f['tmp_name']);
         $mime = (string)(new \finfo(FILEINFO_MIME_TYPE))->buffer($raw);
         if (!in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true)) { throw new ApiException('INVALID_IMAGE', 422); }

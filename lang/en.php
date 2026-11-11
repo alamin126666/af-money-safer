@@ -91,7 +91,7 @@ return [
     'FORBIDDEN' => 'You do not have permission for this action.',
     'WRONG_PASSWORD' => 'The password is incorrect.',
     'INVALID_IMAGE' => 'Please upload a valid JPG, PNG or WebP image.',
-    'FILE_TOO_LARGE' => 'The image is larger than 2 MB.',
+    'FILE_TOO_LARGE' => 'The image is larger than 7 MB.',
     'REASON_REQUIRED' => 'A valid reason is required.',
     'FIELD_EMAIL_SAME' => 'This is already your email.',
     'mail.security.email_changed' => 'The email address of your account was changed. If this was not you, contact us immediately.',
