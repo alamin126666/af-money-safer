@@ -12,6 +12,19 @@ AF.ready(function () {
       AF.busy(btn, false);
       if (j.success) {
         sessionStorage.removeItem('af_otp'); AF.toast(j.message, 'success');
+        /* Admin login flow: the code was entered from /admin/login.php — only let
+           real admins into the panel, everyone else goes back to the admin login. */
+        if (st.dest) {
+          AF.api('admin/overview.php', undefined, { quiet: true }).then(function (k) {
+            if (k.success) { AF.go(st.dest); }
+            else {
+              AF.api('auth/logout.php', {});
+              AF.toast(AF.lang() === 'bn' ? 'এই অ্যাকাউন্টটি অ্যাডমিন নয়।' : 'This account is not an admin.', 'error');
+              setTimeout(function () { AF.go('/admin/login.php'); }, 1200);
+            }
+          });
+          return;
+        }
         AF.go(j.data.next === 'reset-password' ? '/reset-password.php' : '/dashboard.php'); return;
       }
       pad.shake(); pad.clear();

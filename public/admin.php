@@ -1,6 +1,5 @@
 <?php
 declare(strict_types=1);
-
-require __DIR__ . '/../src/bootstrap.php';
-
-App\Core\Page::render('admin', 'Admin', ['admin' => true, 'app' => true]);
+// The admin panel moved to /admin/dashboard.php — keep the old URL working.
+header('Location: /admin/dashboard.php', true, 302);
+exit;

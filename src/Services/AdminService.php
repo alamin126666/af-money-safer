@@ -38,10 +38,15 @@ final class AdminService
         }
         $review = 0;
         foreach (self::db()->collection('transactions')->where('needsReview', '=', true)->limit(50)->documents() as $_) { $review++; }
+        $totalDep = 0; $totalWd = 0;
+        foreach (self::db()->collection('wallets')->select(['totalDeposit', 'totalWithdraw'])->limit(5000)->documents() as $d) {
+            $w = $d->data(); $totalDep += (int)($w['totalDeposit'] ?? 0); $totalWd += (int)($w['totalWithdraw'] ?? 0);
+        }
         $merchant = null;
         try { $r = TashPay::post('/merchant/balance', []); $merchant = $r['code'] === 0 ? ($r['data']['balance'] ?? null) : null; } catch (\Throwable) {}
         return ['OK', ['users' => $users, 'disabledUsers' => $disabled, 'pendingDeposits' => $pend['deposit'],
                        'pendingWithdraws' => $pend['withdraw'], 'needsReview' => $review, 'merchantBalance' => $merchant,
+                       'totalDeposited' => $totalDep, 'totalWithdrawn' => $totalWd,
                        'maintenance' => (bool)Settings::get('maintenance')]];
     }
 

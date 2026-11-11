@@ -8,6 +8,8 @@ return [
     'CODE_RESENT' => 'A new code has been sent.',
     'LOGIN_OK' => 'Login successful.',
     'ACCOUNT_VERIFIED' => 'Email verified successfully.',
+    'ADMIN_SETUP_DONE' => 'Admin account created.',
+    'SETUP_CLOSED' => 'This page no longer exists.',
     'OTP_VERIFIED_RESET' => 'Code accepted. Set your new password.',
     'RESET_OK' => 'Password changed successfully. Please log in.',
     'LOGOUT_OK' => 'Logged out.',
