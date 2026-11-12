@@ -137,11 +137,17 @@ final class AdminService
             ? (int)$in[$k] : throw new ApiException('VALIDATION_FAILED', 422, ['fields' => [$k => 'invalid']]);
         $pct = static fn(string $k) => (isset($in[$k]) && is_numeric($in[$k]) && (float)$in[$k] >= 0 && (float)$in[$k] <= 20)
             ? round((float)$in[$k], 2) : throw new ApiException('VALIDATION_FAILED', 422, ['fields' => [$k => 'invalid']]);
+        $maintOn = (bool)($in['maintenance'] ?? false);
+        $maintReason = isset($in['maintenanceReason']) && is_string($in['maintenanceReason']) ? mb_substr(trim($in['maintenanceReason']), 0, 200) : '';
+        $maintMinutes = (isset($in['maintenanceMinutes']) && is_numeric($in['maintenanceMinutes'])) ? (int)$in['maintenanceMinutes'] : 30;
+        if ($maintMinutes < 5 || $maintMinutes > 1440) { $maintMinutes = 30; }
         $new = [
             'minDeposit' => $int('minDeposit', 1, 1000000), 'maxDeposit' => $int('maxDeposit', 1, 1000000),
             'minWithdraw' => $int('minWithdraw', 100, 1000000), 'maxWithdraw' => $int('maxWithdraw', 100, 1000000),   // TashPay minimum 100
             'depositFeePercent' => $pct('depositFeePercent'), 'withdrawFeePercent' => $pct('withdrawFeePercent'),
-            'maintenance' => (bool)($in['maintenance'] ?? false),
+            'maintenance' => $maintOn,
+            'maintenanceReason' => $maintOn ? $maintReason : '',
+            'maintenanceUntilMs' => $maintOn ? (time() * 1000 + $maintMinutes * 60000) : 0,
         ];
         if ($new['minDeposit'] > $new['maxDeposit'] || $new['minWithdraw'] > $new['maxWithdraw']) {
             throw new ApiException('VALIDATION_FAILED', 422, ['fields' => ['maxDeposit' => 'min > max']]);

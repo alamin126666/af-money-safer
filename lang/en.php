@@ -34,6 +34,13 @@ return [
     'MAIL_FAILED' => 'The email could not be sent. Please try again shortly.',
     'UNAUTHENTICATED' => 'Please log in.',
     'MAINTENANCE' => 'The website is under maintenance.',
+    // maintenance page
+    'maint_title' => "We'll be back soon",
+    'maint_sub' => 'AF MONEY SAFER is under maintenance right now.',
+    'maint_reason' => 'Reason',
+    'maint_back' => 'Expected back by',
+    'maint_note' => "You'll be taken to the login page automatically when we're back.",
+    'cd_days' => 'Days', 'cd_hours' => 'Hours', 'cd_mins' => 'Minutes', 'cd_secs' => 'Seconds',
     'INTERNAL_ERROR' => 'Something went wrong. Please try again.',
     'SERVICE_UNAVAILABLE' => 'This service is temporarily unavailable.',
     'RESET_SESSION_INVALID' => 'The password reset permission has expired. Please start again.',

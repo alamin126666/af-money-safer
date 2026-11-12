@@ -15,5 +15,11 @@ Api::handle(fn() => ['OK', [
     'turnstileSiteKey' => (string)Config::get('turnstile.site_key', ''),
     'lang'          => Lang::current(),
     'authenticated' => !empty($_SESSION['uid']),
+    'isAdmin'       => \App\Services\AdminGuard::isAdminSession(),
+    'maintenance'   => [
+        'on'      => (bool)\App\Core\Settings::get('maintenance'),
+        'reason'  => (string)(\App\Core\Settings::get('maintenanceReason') ?? ''),
+        'untilMs' => (int)(\App\Core\Settings::get('maintenanceUntilMs') ?? 0),
+    ],
     'otp'           => ['length' => (int)Config::get('otp.length'), 'resendIn' => (int)Config::get('otp.resend_after')],
-]], ['methods' => ['GET'], 'csrf' => false]);
+]], ['methods' => ['GET'], 'csrf' => false, 'bypassMaintenance' => true]);

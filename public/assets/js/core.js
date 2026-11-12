@@ -150,6 +150,7 @@
       .then(function (j) {
         if (!j.success) {
           if (j.code === 'UNAUTHENTICATED' && !/^auth\//.test(path)) { location.replace('/login.php'); }
+          if (j.code === 'MAINTENANCE' && location.hash.indexOf('#/admin') !== 0 && !/maintenance\.php$/.test(location.pathname)) { location.replace('/maintenance.php'); }
           if (!opts.quiet) { AF.toast(j.message, 'error'); }
         } else if (opts.ok) { AF.toast(j.message, 'success'); }
         j.data = j.data || {}; return j;
@@ -274,6 +275,18 @@
   /* ---------- init ---------- */
   function init() {
     AF.apply(); AF.syncThemeIcon(); AF.reveal();
+    /* Maintenance director: while maintenance is on, non-admins are sent to
+       the maintenance page at once — also when it is switched on while they
+       are already browsing. Admins and #/admin routes are never redirected. */
+    (function () {
+      function check(b) {
+        if (b && b.maintenance && b.maintenance.on && !b.isAdmin && location.hash.indexOf('#/admin') !== 0 && !/maintenance\.php$/.test(location.pathname)) {
+          location.replace('/maintenance.php');
+        }
+      }
+      AF.boot().then(check);
+      setInterval(function () { AF.boot(true).then(check); }, 30000);
+    })();
     document.addEventListener('click', function (e) {
       ripple(e);
       var a = e.target.closest('[data-action]');

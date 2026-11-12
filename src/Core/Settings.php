@@ -17,6 +17,7 @@ final class Settings
             'minWithdraw' => (int)$l['min_withdraw'], 'maxWithdraw' => (int)$l['max_withdraw'],
             'depositFeePercent' => (float)$l['deposit_fee_percent'], 'withdrawFeePercent' => (float)$l['withdraw_fee_percent'],
             'maintenance' => (bool)Config::get('app.maintenance'),
+            'maintenanceReason' => '', 'maintenanceUntilMs' => 0,
         ];
     }
 
@@ -37,6 +38,10 @@ final class Settings
                 $env = $d['maintenance'];
                 $d = array_replace($d, $fs);
                 $d['maintenance'] = $env || !empty($fs['maintenance']);   // env flag can force maintenance on
+                // Countdown expired: maintenance ends by itself (env-forced stays on).
+                if ($d['maintenance'] && !$env && (int)($d['maintenanceUntilMs'] ?? 0) > 0 && (int)$d['maintenanceUntilMs'] <= time() * 1000) {
+                    $d['maintenance'] = false;
+                }
             }
         } catch (\Throwable $e) {
             Logger::error('settings.load_failed', ['e' => $e->getMessage()]);
@@ -46,6 +51,7 @@ final class Settings
             'minWithdraw' => max(100, (int)$d['minWithdraw']), 'maxWithdraw' => (int)$d['maxWithdraw'],   // TashPay: withdraw >= 100
             'depositFeePercent' => (float)$d['depositFeePercent'], 'withdrawFeePercent' => (float)$d['withdrawFeePercent'],
             'maintenance' => (bool)$d['maintenance'],
+            'maintenanceReason' => (string)($d['maintenanceReason'] ?? ''), 'maintenanceUntilMs' => (int)($d['maintenanceUntilMs'] ?? 0),
         ];
         @file_put_contents($file, json_encode($d), LOCK_EX);
         return self::$mem = $d;

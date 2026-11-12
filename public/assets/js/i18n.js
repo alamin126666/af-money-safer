@@ -32,7 +32,8 @@ en: {
   redirecting:'Redirecting to payment...', copied:'Copied', profile_updated:'Saved',
   'n.deposit_success':'Deposit of ৳{amount} was successful.', 'n.withdraw_submitted':'Withdraw request of ৳{amount} submitted.',
   'n.withdraw_success':'Withdraw of ৳{amount} was completed.', 'n.withdraw_failed':'Withdraw failed. ৳{amount} was returned to your balance.',
-  'n.balance_adjusted':'Your balance was adjusted by ৳{amount}.', logout_ok:'Logged out'
+  'n.balance_adjusted':'Your balance was adjusted by ৳{amount}.', logout_ok:'Logged out',
+  maint_title:"We'll be back soon", maint_sub:'AF MONEY SAFER is under maintenance right now.', maint_reason:'Reason', maint_back:'Expected back by', maint_note:"You'll be taken to the login page automatically when we're back.", cd_days:'Days', cd_hours:'Hours', cd_mins:'Minutes', cd_secs:'Seconds'
 },
 bn: {
   splash_tag:'নিরাপদ ডিপোজিট ও উইথড্র', login_sub:'আপনার অ্যাকাউন্টে লগইন করুন', email:'ইমেইল', password:'পাসওয়ার্ড', login:'লগইন',
@@ -66,5 +67,6 @@ bn: {
   redirecting:'পেমেন্টে নেওয়া হচ্ছে...', copied:'কপি হয়েছে', profile_updated:'সংরক্ষিত হয়েছে',
   'n.deposit_success':'৳{amount} ডিপোজিট সফল হয়েছে।', 'n.withdraw_submitted':'৳{amount} উইথড্র অনুরোধ জমা হয়েছে।',
   'n.withdraw_success':'৳{amount} উইথড্র সম্পন্ন হয়েছে।', 'n.withdraw_failed':'উইথড্র ব্যর্থ হয়েছে। ৳{amount} আপনার ব্যালেন্সে ফেরত দেওয়া হয়েছে।',
-  'n.balance_adjusted':'আপনার ব্যালেন্স ৳{amount} সমন্বয় করা হয়েছে।', logout_ok:'লগআউট হয়েছে'
+  'n.balance_adjusted':'আপনার ব্যালেন্স ৳{amount} সমন্বয় করা হয়েছে।', logout_ok:'লগআউট হয়েছে',
+  maint_title:'শীঘ্রই ফিরে আসছি', maint_sub:'AF MONEY SAFER এখন রক্ষণাবেক্ষণের কাজে আছে।', maint_reason:'কারণ', maint_back:'ফিরে আসার সম্ভাব্য সময়', maint_note:'কাজ শেষ হলেই আপনাকে অটোমেটিক লগইন পেজে নিয়ে যাওয়া হবে।', cd_days:'দিন', cd_hours:'ঘণ্টা', cd_mins:'মিনিট', cd_secs:'সেকেন্ড'
 }};

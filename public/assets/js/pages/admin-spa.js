@@ -253,17 +253,42 @@
   }
 
   function vSettings() {
-    content('<form class="card" id="spaSf"><div class="empty">…</div></form><p class="muted" style="font-size:.85rem">Changes apply to the live site within seconds. Deposit fee is taken from the amount the user pays; withdraw fee is charged on top of the amount, from the user\'s balance.</p>');
+    content('<form id="spaSf"><div class="empty">…</div></form><p class="muted" style="font-size:.85rem">Changes apply to the live site within seconds. Deposit fee is taken from the amount the user pays; withdraw fee is charged on top of the amount, from the user\'s balance.</p>');
     var E = AF.esc;
     AF.api('admin/settings-get.php').then(function (j) {
       if (!j.success) { return; } var s = j.data.settings;
       var form = document.getElementById('spaSf'); if (!form) { return; }
       function f(n, l) { return '<label class="field"><span>' + l + '</span><div class="input"><input name="' + n + '" value="' + E(s[n]) + '" inputmode="decimal"></div></label>'; }
-      form.innerHTML = '<h3 style="margin-top:0">Limits</h3>' + f('minDeposit', 'Minimum deposit (BDT)') + f('maxDeposit', 'Maximum deposit (BDT)') + f('minWithdraw', 'Minimum withdraw (BDT, at least 100)') + f('maxWithdraw', 'Maximum withdraw (BDT)')
-        + '<h3>Fees</h3>' + f('depositFeePercent', 'Deposit fee (%)') + f('withdrawFeePercent', 'Withdraw fee (%)') + feePreviewBox()
-        + '<h3>Maintenance</h3><label class="field"><span>Maintenance mode</span><div class="input"><input type="checkbox" name="maintenance" ' + (s.maintenance ? 'checked' : '') + ' style="flex:none;width:22px;height:22px"></div></label><button class="btn btn-primary btn-block">Save settings</button>';
+      function mins() {
+        var opts = [15, 30, 60, 120, 240], rem = s.maintenanceUntilMs ? Math.max(1, Math.round((s.maintenanceUntilMs - Date.now()) / 60000)) : 30, sel = 30;
+        for (var i = 0; i < opts.length; i++) { sel = opts[i]; if (opts[i] >= rem) { break; } }
+        return opts.map(function (o) { return '<option value="' + o + '"' + (o === sel ? ' selected' : '') + '>' + o + ' minutes</option>'; }).join('');
+      }
+      form.innerHTML = '<section class="card"><h3 style="margin-top:0">Limits</h3>' + f('minDeposit', 'Minimum deposit (BDT)') + f('maxDeposit', 'Maximum deposit (BDT)') + f('minWithdraw', 'Minimum withdraw (BDT, at least 100)') + f('maxWithdraw', 'Maximum withdraw (BDT)')
+        + '<h3>Fees</h3>' + f('depositFeePercent', 'Deposit fee (%)') + f('withdrawFeePercent', 'Withdraw fee (%)') + feePreviewBox() + '</section>'
+        + '<section class="card maint-card"><div class="maint-head"><span class="maint-ic">' + AF.icon('settings', 22) + '</span><div class="maint-title"><h3>Maintenance mode</h3><p class="muted">When on, users are sent to a maintenance page with the reason and a countdown. Admins are not affected.</p></div>'
+        + '<label class="m-toggle" aria-label="Maintenance mode"><input type="checkbox" name="maintenance" ' + (s.maintenance ? 'checked' : '') + '><span class="m-track"><span class="m-knob"></span></span></label></div>'
+        + '<div class="maint-live" id="spaMaintLive" hidden></div>'
+        + '<div class="maint-fields" id="spaMaintFields"><label class="field"><span>Reason (shown to users)</span><div class="input"><input name="maintenanceReason" value="' + E(s.maintenanceReason || '') + '" maxlength="200" placeholder="e.g. Server upgrade in progress"></div></label>'
+        + '<label class="field"><span>How long</span><div class="input"><select name="maintenanceMinutes">' + mins() + '</select></div></label></div></section>'
+        + '<button class="btn btn-primary btn-block">Save settings</button>';
       feePreview(form);
       form.addEventListener('input', function () { feePreview(form); });
+      var tg = form.maintenance, fields = document.getElementById('spaMaintFields');
+      function syncFields() { fields.style.display = tg.checked ? '' : 'none'; }
+      tg.addEventListener('change', syncFields); syncFields();
+      (function live() {
+        var el = document.getElementById('spaMaintLive'); if (!el) { return; }
+        function tick() {
+          if (!s.maintenance || !s.maintenanceUntilMs) { el.hidden = true; return; }
+          var ms = s.maintenanceUntilMs - Date.now();
+          if (ms <= 0) { el.hidden = true; return; }
+          var sec = Math.floor(ms / 1000), h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), ss = sec % 60;
+          el.hidden = false;
+          el.innerHTML = '<span class="maint-dot"></span><div><b>Live now — ' + E(s.maintenanceReason || 'Maintenance') + '</b><small>Ends in ' + (h ? h + 'h ' : '') + (m < 10 ? '0' : '') + m + 'm ' + (ss < 10 ? '0' : '') + ss + 's · ' + new Date(s.maintenanceUntilMs).toLocaleString() + '</small></div>';
+        }
+        tick(); setInterval(tick, 1000);
+      })();
       form.addEventListener('submit', function (e) { e.preventDefault(); var d = AF.form(e.target); d.maintenance = e.target.maintenance.checked; AF.api('admin/settings-update.php', d, { ok: true }); });
     });
   }

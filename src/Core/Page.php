@@ -16,6 +16,20 @@ final class Page
     public static function render(string $name, string $title, array $o = []): void
     {
         $o += ['auth' => false, 'admin' => false, 'app' => false, 'js' => [], 'css' => [], 'layout' => 'default'];
+        // Maintenance director: while maintenance is on, every user page sends
+        // the visitor to /maintenance.php (reason + countdown) instead.
+        // Exempt: the maintenance page itself, admin pages, and the splash —
+        // the splash is the admin SPA's entry, so the client-side check in
+        // core.js handles it (it exempts #/admin hashes).
+        if ($name !== 'maintenance' && empty($o['admin']) && $o['layout'] !== 'admin' && $name !== 'index') {
+            if ((bool)Settings::get('maintenance')) {
+                Session::start();
+                if (!AdminGuard::isAdminSession()) { self::redirect('/maintenance.php'); }
+            }
+        }
+        if ($name === 'maintenance' && !(bool)Settings::get('maintenance')) {
+            self::redirect('/login.php');
+        }
         $csrf = null;
         $me = null;
         $adminRole = null;
