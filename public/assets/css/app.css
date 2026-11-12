@@ -232,6 +232,10 @@ img{max-width:100%}
 .pw-meter[data-s="3"] i:nth-child(-n+3){background:#7ec850}
 .pw-meter[data-s="4"] i:nth-child(-n+4){background:linear-gradient(90deg,var(--vivid),var(--accent))}
 .pw-meter-label{display:block;margin-top:6px;font-size:.82rem;font-weight:600;color:var(--muted)}
+.pw-meter[data-s="0"] ~ .pw-meter-label{color:#e0524a}
+.pw-match{display:block;margin-top:6px;font-size:.82rem;font-weight:600}
+.pw-match.ok{color:var(--ok)}
+.pw-match.bad{color:#e0524a}
 .pw-meter[data-s="1"] ~ .pw-meter-label{color:#e0524a}
 .pw-meter[data-s="2"] ~ .pw-meter-label{color:#d98a00}
 .pw-meter[data-s="3"] ~ .pw-meter-label{color:var(--ok)}

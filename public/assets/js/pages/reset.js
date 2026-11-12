@@ -18,7 +18,7 @@ AF.ready(function () {
     if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(meter, anchor.nextSibling); meter.parentNode.insertBefore(meterLabel, meter.nextSibling); }
     else if (field) { field.appendChild(meter); field.appendChild(meterLabel); }
   }
-  var LABELS = { bn: ['', 'দুর্বল', 'মোটামুটি', 'ভালো', 'শক্তিশালী'], en: ['', 'Weak', 'Fair', 'Good', 'Strong'] };
+  var LABELS = { bn: ['খুব দুর্বল', 'দুর্বল', 'মোটামুটি', 'ভালো', 'শক্তিশালী'], en: ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'] };
   function scorePw(v) {
     if (!v) { return 0; }
     var s = 0;
@@ -32,9 +32,28 @@ AF.ready(function () {
     if (!meter || !pw) { return; }
     var s = scorePw(pw.value);
     meter.setAttribute('data-s', String(s));
-    if (meterLabel) { meterLabel.textContent = (LABELS[AF.lang()] || LABELS.en)[s]; }
+    if (meterLabel) { meterLabel.textContent = pw.value ? (LABELS[AF.lang()] || LABELS.en)[s] : ''; }
   }
-  if (pw) { pw.addEventListener('input', paintMeter); paintMeter(); }
+  /* Confirm-password match — live text under the confirm field. */
+  var cf = f ? f.querySelector('input[name="confirmPassword"]') : null;
+  var match = document.querySelector('.pw-match');
+  if (cf && !match) {
+    match = document.createElement('small');
+    match.className = 'pw-match';
+    var anchor = cf.closest('.input');
+    if (anchor && anchor.parentNode) { anchor.parentNode.insertBefore(match, anchor.nextSibling); }
+  }
+  var MATCH = { bn: { ok: 'পাসওয়ার্ড মিলেছে', bad: 'পাসওয়ার্ড মিলছে না' }, en: { ok: 'Passwords match', bad: 'Passwords do not match' } };
+  function paintMatch() {
+    if (!match || !cf) { return; }
+    if (!cf.value) { match.textContent = ''; match.className = 'pw-match'; return; }
+    var ok = pw && cf.value === pw.value;
+    var t = MATCH[AF.lang()] || MATCH.en;
+    match.textContent = ok ? t.ok : t.bad;
+    match.className = 'pw-match ' + (ok ? 'ok' : 'bad');
+  }
+  if (pw) { pw.addEventListener('input', function () { paintMeter(); paintMatch(); }); paintMeter(); paintMatch(); }
+  if (cf) { cf.addEventListener('input', paintMatch); }
 
   f.addEventListener('submit', function (e) {
     e.preventDefault(); AF.fieldErrors(f, null);
