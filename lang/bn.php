@@ -99,6 +99,8 @@ return [
     'TX_NOT_FOUND' => 'লেনদেনটি পাওয়া যায়নি।',
     'NOT_FOUND' => 'পাওয়া যায়নি।',
     'FORBIDDEN' => 'এই কাজের অনুমতি আপনার নেই।',
+    'NOT_DELETABLE' => 'সফল লেনদেন মুছে ফেলা যাবে না।',
+    'TX_DELETED' => 'ইতিহাস থেকে মুছে ফেলা হয়েছে।',
     'WRONG_PASSWORD' => 'পাসওয়ার্ড সঠিক নয়।',
     'INVALID_IMAGE' => 'সঠিক JPG, PNG অথবা WebP ছবি দিন।',
     'FILE_TOO_LARGE' => 'ছবির আকার ৭ MB-এর বেশি।',

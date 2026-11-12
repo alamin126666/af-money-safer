@@ -193,7 +193,7 @@
           var c = e.target.closest('[data-c]'); if (c) { AF.copy(c.getAttribute('data-c')); }
           if (e.target.closest('#hDelBtn')) {
             var btn = $('#hDelBtn', m.el); AF.busy(btn, true);
-            AF.api('history/delete.php', { txId: t.id }).then(function (j) {
+            AF.api('history/delete.php', { txId: t.id }, { quiet: true }).then(function (j) {
               AF.busy(btn, false);
               if (j.success) {
                 m.close();

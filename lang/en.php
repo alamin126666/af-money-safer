@@ -99,6 +99,8 @@ return [
     'TX_NOT_FOUND' => 'Transaction not found.',
     'NOT_FOUND' => 'Not found.',
     'FORBIDDEN' => 'You do not have permission for this action.',
+    'NOT_DELETABLE' => 'Successful transactions cannot be removed.',
+    'TX_DELETED' => 'Removed from history.',
     'WRONG_PASSWORD' => 'The password is incorrect.',
     'INVALID_IMAGE' => 'Please upload a valid JPG, PNG or WebP image.',
     'FILE_TOO_LARGE' => 'The image is larger than 7 MB.',
