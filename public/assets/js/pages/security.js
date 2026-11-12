@@ -48,22 +48,33 @@ AF.ready(function () {
       return AF.api('profile/totp-setup.php', { password: d.password }).then(function (j) {
         if (!j.success) { return; }
         m.close();
-        // Step 2: show the secret + otpauth URL (copyable text — paste it
-        // into the Authenticator app), then verify one code to switch on.
+        // Step 2: show the secret key + how to add it by hand, then a Next
+        // button opens the verify step (enter the app's 6-digit code).
         var sec = j.data, pad;
         var m2 = AF.modal({ title: AF.t('twofa_setup_title'), html:
-          '<p class="muted">' + AF.esc(AF.t('twofa_setup_note')) + '</p>'
+          '<div id="totpSetupPart">'
+          + '<p class="muted">' + AF.esc(AF.t('twofa_setup_note')) + '</p>'
           + '<label class="field"><span>' + AF.esc(AF.t('totp_secret')) + '</span><div class="input"><input value="' + AF.esc(sec.secret) + '" readonly></div></label>'
           + '<button class="btn btn-ghost btn-block" type="button" id="totpCopySec">' + AF.esc(AF.t('copy_secret')) + '</button>'
-          + '<label class="field" style="margin-top:10px"><span>' + AF.esc(AF.t('totp_url')) + '</span><div class="input"><input value="' + AF.esc(sec.otpauthUrl) + '" readonly></div></label>'
-          + '<button class="btn btn-ghost btn-block" type="button" id="totpCopyUrl">' + AF.esc(AF.t('copy_url')) + '</button>'
-          + '<p class="muted" style="margin-top:12px">' + AF.esc(AF.t('totp_enter_code')) + '</p>'
+          + '<ol class="muted" style="margin:14px 0 0;padding-left:20px">'
+          + '<li>' + AF.esc(AF.t('twofa_step1')) + '</li>'
+          + '<li>' + AF.esc(AF.t('twofa_step2')) + '</li>'
+          + '<li>' + AF.esc(AF.t('twofa_step3')) + '</li>'
+          + '<li>' + AF.esc(AF.t('twofa_step4')) + '</li></ol>'
+          + '<button class="btn btn-primary btn-block" type="button" id="totpNext" style="margin-top:14px">' + AF.esc(AF.t('next')) + '</button>'
+          + '</div>'
+          + '<div id="totpVerifyPart" hidden>'
+          + '<p class="muted">' + AF.esc(AF.t('totp_enter_code')) + '</p>'
           + '<div class="otp-boxes" id="mb"></div><div class="numpad" id="mp"></div>'
-          + '<button class="btn btn-primary btn-block" id="mc" type="button">' + AF.esc(AF.t('twofa_enable')) + '</button>',
+          + '<button class="btn btn-primary btn-block" id="mc" type="button">' + AF.esc(AF.t('twofa_verify_btn')) + '</button>'
+          + '</div>',
           onClose: function () { if (pad) { pad.destroy(); } } });
         $('#totpCopySec', m2.el).addEventListener('click', function () { AF.copy(sec.secret); });
-        $('#totpCopyUrl', m2.el).addEventListener('click', function () { AF.copy(sec.otpauthUrl); });
-        pad = AF.otpPad({ boxes: $('#mb', m2.el), pad: $('#mp', m2.el), length: 6, onComplete: function () {} });
+        $('#totpNext', m2.el).addEventListener('click', function () {
+          $('#totpSetupPart', m2.el).hidden = true;
+          $('#totpVerifyPart', m2.el).hidden = false;
+          pad = AF.otpPad({ boxes: $('#mb', m2.el), pad: $('#mp', m2.el), length: 6, onComplete: function () {} });
+        });
         $('#mc', m2.el).addEventListener('click', function () {
           if (pad.get().length !== 6) { AF.toast(AF.t('code_incomplete'), 'error'); return; }
           var b = $('#mc', m2.el); AF.busy(b, true);
