@@ -145,7 +145,7 @@
       try { if (document.hidden || e._lotVisible === false) a.pause(); else a.play(); } catch (err) {}
     });
   });
-  AF.logo = function (s) { return '<img src="/assets/img/logo.svg" width="' + s + '" height="' + s + '" alt="AF MONEY SAFER">'; };
+  AF.logo = function (s) { return '<img src="/assets/img/logo.svg?v=2" width="' + s + '" height="' + s + '" alt="AF MONEY SAFER">'; };
 
   var COLORS = ['#12b886', '#f5c451', '#4c8bf5', '#e2136e', '#f6921e', '#8b5cf6', '#14b8a6', '#ef4444'];
   AF.avatar = function (a, size) {

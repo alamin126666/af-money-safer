@@ -19,7 +19,7 @@ $who = ($me['fullName'] ?? 'Admin') . ' · ' . ($adminRole ?? 'admin');
 <meta name="color-scheme" content="light dark">
 <meta name="robots" content="noindex, nofollow">
 <?php if ($csrf !== null): ?><meta name="csrf" content="<?= $h($csrf) ?>"><?php endif; ?>
-<link rel="icon" href="/assets/img/logo.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/img/logo.svg?v=2" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/css/app.css?v=<?= $v('/assets/css/app.css') ?>">
 <script src="/assets/js/theme-init.js"></script>
 </head>
