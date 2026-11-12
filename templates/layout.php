@@ -58,6 +58,8 @@ $navHome = in_array($name, ['dashboard', 'deposit', 'withdraw', 'history', 'noti
   <a href="/profile.php" class="<?= $name === 'profile' ? 'active' : '' ?>"><span data-icon="user" data-size="24"></span><span data-i18n="nav_profile"></span><span class="nav-dot"></span></a>
 </nav>
 <?php endif; ?>
+<script src="/assets/js/lottie.min.js?v=<?= $v('/assets/js/lottie.min.js') ?>" defer></script>
+<script src="/assets/js/lottie-icons.js?v=<?= $v('/assets/js/lottie-icons.js') ?>" defer></script>
 <script src="/assets/js/i18n.js?v=<?= $v('/assets/js/i18n.js') ?>" defer></script>
 <script src="/assets/js/core.js?v=<?= $v('/assets/js/core.js') ?>" defer></script>
 <script src="/assets/js/pages/admin/common.js?v=<?= $v('/assets/js/pages/admin/common.js') ?>" defer></script>

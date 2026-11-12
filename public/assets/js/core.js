@@ -59,6 +59,62 @@
   AF.icon = function (n, s) { s = s || 20; return '<svg class="ic" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || '') + '</svg>'; };
   /* Animated success check (Telegram-style): circle + tick draw themselves in. Uses currentColor. */
   AF.animCheck = function (s) { s = s || 52; return '<svg class="anim-check" width="' + s + '" height="' + s + '" viewBox="0 0 52 52" fill="none" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M14.5 27l7.5 7.5L38 18.5"/></svg>'; };
+
+  /* ---------- Lottie icons (custom JSON, always looping) ---------- */
+  var LOT = window.AF_LOTTIE || null;
+  var LOT_NAMES = { home: 1, deposit: 1, withdraw: 1, history: 1, user: 1 };
+  var lotAnims = [];
+  function lotRgb(c) {
+    var m = (c || '').match(/rgba?\(([^)]+)\)/);
+    if (!m) return [0, 0, 0];
+    var p = m[1].split(',').map(function (x) { return parseFloat(x) / 255; });
+    return [p[0] || 0, p[1] || 0, p[2] || 0];
+  }
+  function lotTint(json, rgb) {
+    return JSON.parse(JSON.stringify(json).split('[0.999,0.999,0.999,1]').join('[' + rgb[0].toFixed(3) + ',' + rgb[1].toFixed(3) + ',' + rgb[2].toFixed(3) + ',1]'));
+  }
+  function lotDestroy(e) {
+    if (!e._lotAnim) return;
+    try { e._lotAnim.destroy(); } catch (err) {}
+    var i = lotAnims.indexOf(e._lotAnim);
+    if (i > -1) lotAnims.splice(i, 1);
+    e._lotAnim = null;
+  }
+  /* Fill one [data-icon] span: looping Lottie for the 5 nav/action icons when
+     they sit in the bottom nav, sidebar or a dashboard action card; the plain
+     SVG everywhere else. Hidden containers keep the static icon. */
+  AF.lottieFill = function (e) {
+    var n = e.getAttribute('data-icon'), s = parseInt(e.getAttribute('data-size') || '20', 10);
+    if (e._lotAnim && e._lotName === n && e._lotSize === s) return;
+    lotDestroy(e);
+    var animated = LOT && window.lottie && LOT_NAMES[n]
+      && (e.closest('.bottom-nav') || e.closest('.side-nav') || e.classList.contains('action-ic'))
+      && e.getClientRects().length > 0
+      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!animated) { e.innerHTML = AF.icon(n, s); e.removeAttribute('data-lot'); return; }
+    e.innerHTML = '';
+    var box = document.createElement('span');
+    box.className = 'lot'; box.style.width = s + 'px'; box.style.height = s + 'px';
+    e.appendChild(box);
+    try {
+      e._lotAnim = window.lottie.loadAnimation({
+        container: box, renderer: 'svg', loop: true, autoplay: !document.hidden,
+        animationData: lotTint(LOT[n], lotRgb(getComputedStyle(e).color))
+      });
+      e._lotName = n; e._lotSize = s;
+      lotAnims.push(e._lotAnim);
+      e.setAttribute('data-lot', '1');
+    } catch (err) { e._lotAnim = null; e.innerHTML = AF.icon(n, s); }
+  };
+  /* Theme switch changes the icon colour — rebuild the Lottie copies. */
+  AF.reLottie = function () {
+    $$('[data-lot]').forEach(function (e) { lotDestroy(e); e.removeAttribute('data-lot'); e._lotName = null; AF.lottieFill(e); });
+  };
+  document.addEventListener('af:theme', function () { AF.reLottie(); });
+  /* Pause every looping icon while the tab is hidden (battery). */
+  document.addEventListener('visibilitychange', function () {
+    lotAnims.forEach(function (a) { try { if (document.hidden) a.pause(); else a.play(); } catch (err) {} });
+  });
   AF.logo = function (s) { return '<img src="/assets/img/logo.svg" width="' + s + '" height="' + s + '" alt="AF MONEY SAFER">'; };
 
   var COLORS = ['#12b886', '#f5c451', '#4c8bf5', '#e2136e', '#f6921e', '#8b5cf6', '#14b8a6', '#ef4444'];
@@ -83,7 +139,7 @@
     root = root || document;
     $$('[data-i18n]', root).forEach(function (e) { e.textContent = AF.t(e.getAttribute('data-i18n')); });
     $$('[data-i18n-ph]', root).forEach(function (e) { e.setAttribute('placeholder', AF.t(e.getAttribute('data-i18n-ph'))); });
-    $$('[data-icon]', root).forEach(function (e) { e.innerHTML = AF.icon(e.getAttribute('data-icon'), parseInt(e.getAttribute('data-size') || '20', 10)); });
+    $$('[data-icon]', root).forEach(function (e) { AF.lottieFill(e); });
     $$('[data-logo]', root).forEach(function (e) { e.innerHTML = AF.logo(parseInt(e.getAttribute('data-logo'), 10)); });
     $$('.lang-tag', root).forEach(function (e) { e.textContent = lang === 'bn' ? 'বাং' : 'EN'; });
   };

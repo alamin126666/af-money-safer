@@ -806,9 +806,12 @@ img{max-width:100%}
 .page-maintenance .wrap{display:flex;flex-direction:column;justify-content:safe center;min-height:100vh;min-height:100dvh}
 
 /* ---- Animated icons pilot (Telegram-style, CSS/SVG only — no library, no extra weight) ---- */
+/* Lottie icons: the player svg fills its box; nav pop applies to the Lottie box too. */
+.lot{display:inline-flex;flex:none}
+.lot svg{width:100%!important;height:100%!important;display:block}
 /* Bottom nav + sidebar: the active tab's icon pops in on landing; taps bounce. */
-.bottom-nav a.active .ic,.side-nav a.active .ic{animation:navPop .45s cubic-bezier(.34,1.56,.64,1) both}
-.bottom-nav a:active .ic{animation:navTap .3s ease both}
+.bottom-nav a.active .ic,.side-nav a.active .ic,.bottom-nav a.active .lot,.side-nav a.active .lot{animation:navPop .45s cubic-bezier(.34,1.56,.64,1) both}
+.bottom-nav a:active .ic,.bottom-nav a:active .lot{animation:navTap .3s ease both}
 .bottom-nav a.active .nav-dot{animation:dotIn .3s ease both}
 @keyframes navPop{0%{transform:scale(.4) rotate(-14deg);opacity:0}60%{transform:scale(1.18) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
 @keyframes navTap{0%{transform:scale(1)}40%{transform:scale(.78)}100%{transform:scale(1)}}
@@ -821,6 +824,6 @@ img{max-width:100%}
 @keyframes acDraw{to{stroke-dashoffset:0}}
 @keyframes checkPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
 @media (prefers-reduced-motion:reduce){
-  .bottom-nav a.active .ic,.side-nav a.active .ic,.bottom-nav a:active .ic,.bottom-nav a.active .nav-dot,.anim-check,.anim-check circle,.anim-check path{animation:none!important}
+  .bottom-nav a.active .ic,.side-nav a.active .ic,.bottom-nav a:active .ic,.bottom-nav a.active .lot,.side-nav a.active .lot,.bottom-nav a:active .lot,.bottom-nav a.active .nav-dot,.anim-check,.anim-check circle,.anim-check path{animation:none!important}
   .anim-check circle,.anim-check path{stroke-dashoffset:0}
 }
