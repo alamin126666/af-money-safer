@@ -16,7 +16,7 @@
   }
 
   var TITLES = { dashboard: 'Dashboard', users: 'Users', transactions: 'Transactions', settings: 'Settings', audit: 'Audit log', login: 'Admin Login', setup: 'Admin Setup', promos: 'Promo codes', broadcast: 'Broadcast', reports: 'Reports' };
-  var NAV = [['dashboard', 'Dashboard', 'home'], ['users', 'Users', 'user'], ['transactions', 'Transactions', 'history'], ['promos', 'Promo codes', 'sparkle'], ['broadcast', 'Broadcast', 'send'], ['reports', 'Reports', 'chart'], ['settings', 'Settings', 'settings'], ['audit', 'Audit log', 'clock']];
+  var NAV = [['dashboard', 'Dashboard', 'home'], ['users', 'Users', 'user'], ['transactions', 'Transactions', 'history'], ['promos', 'Promo codes', 'gift'], ['broadcast', 'Broadcast', 'send'], ['reports', 'Reports', 'chart'], ['settings', 'Settings', 'settings'], ['audit', 'Audit log', 'clock']];
 
   function shellHTML(active) {
     var links = NAV.map(function (n) {
@@ -165,6 +165,16 @@
     });
   }
 
+  /* Random gift code: AF- + 4 digits + '-' + 4 letters/digits (e.g. AF-3838-BBB4). */
+  function genCode() {
+    var buf = new Uint32Array(8), i;
+    if (window.crypto && crypto.getRandomValues) { crypto.getRandomValues(buf); }
+    else { for (i = 0; i < 8; i++) { buf[i] = Math.floor(Math.random() * 4294967296); } }
+    var ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', digits = '', chars = '';
+    for (i = 0; i < 4; i++) { digits += String(buf[i] % 10); chars += ABC[buf[i + 4] % 36]; }
+    return 'AF-' + digits + '-' + chars;
+  }
+
   function statCard(ic, tone, label, value, sub) {
     return '<section class="card stat-card"><span class="stat-ic ' + tone + '">' + AF.lotIcon(ic, 22) + '</span><div><span class="label">' + label + '</span><b>' + value + '</b><small>' + sub + '</small></div></section>';
   }
@@ -306,13 +316,17 @@
   }
 
   function vPromos() {
-    content('<section class="card"><h3 style="margin-top:0">Create promo code</h3><form id="spaPromoForm" style="display:flex;gap:8px;flex-wrap:wrap">'
-      + '<input class="txt" name="code" placeholder="Code (A-Z, 0-9, 4-20 chars)" style="flex:2;min-width:140px;text-transform:uppercase">'
+    content('<section class="card gift-hero compact"><div class="gift-ic"><span data-icon="gift" data-size="36"></span></div>'
+      + '<div><h3 style="margin:0">Promo codes</h3><p class="muted" style="margin:4px 0 0">Create gift codes — users claim them from their Gift Code page and get the bonus in their balance.</p></div></section>'
+      + '<section class="card"><h3 style="margin-top:0">Create promo code</h3><form id="spaPromoForm" novalidate>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="input" style="flex:2;min-width:160px"><input name="code" placeholder="AF-0000-XXXX" style="text-transform:uppercase" maxlength="20" autocomplete="off"></div>'
+      + '<button class="btn btn-ghost" type="button" id="spaPromoGen">Generate</button></div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'
       + '<input class="txt" name="amount" placeholder="Bonus (BDT)" inputmode="numeric" style="flex:1;min-width:110px">'
       + '<input class="txt" name="maxUses" placeholder="Max uses (0 = unlimited)" inputmode="numeric" style="flex:1;min-width:120px">'
       + '<input class="txt" name="expiryDays" placeholder="Valid for (days, 0 = never)" inputmode="numeric" style="flex:1;min-width:130px">'
-      + '<label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="active" checked> Active</label>'
-      + '<button class="btn btn-primary">Create</button></form></section>'
+      + '<label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="active" checked> Active</label></div>'
+      + '<button class="btn btn-primary" style="margin-top:12px">Create</button></form></section>'
       + '<section class="card"><h3 style="margin-top:0">Promo codes</h3><div id="spaPromoRes"><div class="empty">…</div></div></section>');
     var E = AF.esc, tk = window.AFAdmin.tk;
     function run() {
@@ -326,9 +340,15 @@
       });
     }
     run();
+    document.getElementById('spaPromoGen').addEventListener('click', function () {
+      var input = document.querySelector('#spaPromoForm input[name=code]');
+      if (input) { input.value = genCode(); input.focus(); }
+    });
     document.getElementById('spaPromoForm').addEventListener('submit', function (e) {
       e.preventDefault();
       var d = AF.form(e.target); d.action = 'create'; d.active = e.target.active.checked;
+      d.code = (d.code || '').trim().toUpperCase();
+      if (d.code.length < 4 || d.code.length > 20 || !/^[A-Z0-9]+(-[A-Z0-9]+)*$/.test(d.code)) { AF.toast(AF.t('promo_code_invalid'), 'error'); return; }
       AF.api('admin/promo-codes.php', d, { ok: true }).then(function (j) { if (j.success) { e.target.reset(); e.target.active.checked = true; run(); } });
     });
     document.getElementById('spaPromoRes').addEventListener('click', function (e) {
@@ -371,41 +391,12 @@
     content('<section class="card"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">Reports</h3><div class="seg" id="spaRepRange"><button data-v="7">7 days</button><button data-v="30" class="on">30 days</button></div></div>'
       + '<div class="stat-grid" id="spaRepStats" style="margin-top:14px"></div></section>'
       + '<section class="card"><h3 style="margin-top:0">Daily volume</h3><div class="chart-wrap"><canvas id="spaRepCv"></canvas></div>'
-      + '<div class="chart-legend"><span><i style="background:var(--ok)"></i>Deposit</span><span><i style="background:var(--danger)"></i>Withdraw</span></div></section>'
+      + '<div class="chart-legend"><span><i class="lg-dep"></i>Deposit</span><span><i class="lg-wd"></i>Withdraw</span></div></section>'
       + '<section class="card"><h3 style="margin-top:0">Method split</h3><div id="spaRepMethods"><div class="empty">…</div></div></section>');
     var E = AF.esc, tk = window.AFAdmin.tk, days = 30, data = null;
     function drawChart() {
       var cv = document.getElementById('spaRepCv'); if (!cv || !data) { return; }
-      var series = data.series || [];
-      var ctx = cv.getContext('2d');
-      var w = cv.clientWidth || cv.parentNode.clientWidth || 320, h = 170, dpr = window.devicePixelRatio || 1;
-      cv.width = w * dpr; cv.height = h * dpr; cv.style.height = h + 'px';
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, w, h);
-      var cs = getComputedStyle(document.documentElement);
-      var depC = (cs.getPropertyValue('--ok') || '#12a36b').trim();
-      var wdC = (cs.getPropertyValue('--danger') || '#e0524a').trim();
-      var mutC = (cs.getPropertyValue('--muted') || '#888888').trim();
-      var max = 0;
-      series.forEach(function (d) { max = Math.max(max, d.deposit, d.withdraw); });
-      if (max <= 0) { return; }
-      var padL = 6, padB = 20, padT = 8, plotH = h - padB - padT;
-      var gw = (w - padL * 2) / series.length, bw = Math.max(3, Math.min(12, (gw - 6) / 2));
-      function bar(x, y, bw2, bh) {
-        if (bh <= 0) { return; }
-        if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, bw2, bh, 2); ctx.fill(); }
-        else { ctx.fillRect(x, y, bw2, bh); }
-      }
-      series.forEach(function (d, i) {
-        var x0 = padL + i * gw + (gw - bw * 2 - 3) / 2;
-        var dh = d.deposit > 0 ? Math.max(2, d.deposit / max * plotH) : 0;
-        var wh = d.withdraw > 0 ? Math.max(2, d.withdraw / max * plotH) : 0;
-        ctx.fillStyle = depC; bar(x0, padT + plotH - dh, bw, dh);
-        ctx.fillStyle = wdC; bar(x0 + bw + 3, padT + plotH - wh, bw, wh);
-        ctx.fillStyle = mutC;
-        ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText(String(new Date(d.date + 'T00:00:00+06:00').getDate()), x0 + bw + 1.5, h - 6);
-      });
+      AF.drawChart(cv, data.series || [], {});
     }
     function run() {
       AF.api('admin/reports.php?days=' + days, undefined, { quiet: true, method: 'GET' }).then(function (j) {
@@ -415,7 +406,7 @@
         var el = document.getElementById('spaRepStats'); if (!el) { return; }
         el.innerHTML = statCard('deposit', 't-green', 'Deposits', tk(t.deposits.sum), E(t.deposits.count) + ' in ' + data.days + ' days')
           + statCard('withdraw', 't-blue', 'Withdraws', tk(t.withdraws.sum), E(t.withdraws.count) + ' in ' + data.days + ' days')
-          + statCard('sparkle', 't-gold', 'Bonuses', tk(t.bonuses.sum), E(t.bonuses.count) + ' redeemed · ' + E(data.promoRedemptions) + ' promo redemptions')
+          + statCard('gift', 't-gold', 'Bonuses', tk(t.bonuses.sum), E(t.bonuses.count) + ' redeemed · ' + E(data.promoRedemptions) + ' promo redemptions')
           + statCard('user', 't-purple', 'New users', E(data.newUsers), 'in ' + data.days + ' days')
           + statCard('clock', 't-red', 'Pending withdraws', E(data.pendingWithdraws), 'awaiting payout')
           + statCard('clock', 't-gold', 'Awaiting approval', E(data.awaitingApproval), 'needs an admin decision');

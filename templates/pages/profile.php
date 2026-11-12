@@ -19,10 +19,24 @@
   <input type="file" id="photoFile" accept="image/jpeg,image/png,image/webp" hidden>
 </section>
 <section class="card">
-  <h3 data-i18n="twofa_title"></h3>
-  <p class="muted" data-i18n="twofa_desc"></p>
-  <div class="row"><span class="muted" data-i18n="twofa_status"></span><b id="twofaState">—</b></div>
-  <button class="btn btn-primary btn-block" id="twofaBtn" type="button" data-act="2fa" style="margin-top:12px"><span id="twofaBtnLabel" data-i18n="twofa_enable"></span></button>
+  <h3 data-i18n="security"></h3>
+  <div class="menu">
+    <a class="menu-item" href="/security.php">
+      <span class="m-ic" id="secIc" data-icon="shield"></span>
+      <span data-i18n="twofa_title"></span>
+      <span class="m-status off" id="secState">—</span>
+      <span class="m-chev" data-icon="chevron"></span>
+    </a>
+  </div>
+</section>
+<section class="card">
+  <div class="menu">
+    <a class="menu-item" href="/gift-code.php">
+      <span class="m-ic gift-ic-sm" data-icon="gift"></span>
+      <span data-i18n="gift_code"></span>
+      <span class="m-chev" data-icon="chevron"></span>
+    </a>
+  </div>
 </section>
 <section class="card">
   <h3 data-i18n="preferences"></h3>

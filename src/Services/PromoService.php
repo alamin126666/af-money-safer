@@ -27,7 +27,13 @@ final class PromoService
     private static function code(mixed $v): string
     {
         $s = is_string($v) ? strtoupper(trim($v)) : '';
-        if (!preg_match('/^[A-Z0-9]{4,20}$/', $s)) { throw new ApiException('PROMO_INVALID_CODE', 422); }
+        /* Codes are uppercase letters/digits, hyphens allowed inside
+           (e.g. AF-3838-BBB4 from the admin generator): 4-20 chars, no
+           leading/trailing hyphen, no double hyphen. */
+        if (strlen($s) < 4 || strlen($s) > 20 || !preg_match('/^[A-Z0-9-]+$/', $s)
+            || $s[0] === '-' || substr($s, -1) === '-' || str_contains($s, '--')) {
+            throw new ApiException('PROMO_INVALID_CODE', 422);
+        }
         return $s;
     }
 
@@ -96,6 +102,21 @@ final class PromoService
     }
 
     // ------------------------------------------------------------------- user
+    /** The signed-in user's own redemptions, newest first. Sorted in PHP:
+       promo_redemptions has no userId+createdAtMs composite index, and the
+       per-user list is small. */
+    public static function redemptions(array $user): array
+    {
+        $rows = [];
+        foreach (Firebase::db()->collection('promo_redemptions')->where('userId', '=', $user['uid'])->limit(100)->documents() as $d) {
+            $x = $d->data();
+            $rows[] = ['code' => (string)($x['code'] ?? ''), 'amount' => (int)($x['amount'] ?? 0),
+                       'createdAtMs' => (int)($x['createdAtMs'] ?? 0)];
+        }
+        usort($rows, static fn($a, $b) => $b['createdAtMs'] <=> $a['createdAtMs']);
+        return ['OK', ['items' => array_slice($rows, 0, 50)]];
+    }
+
     public static function redeem(array $user, array $in): array
     {
         RateLimit::hit("promo_redeem:{$user['uid']}", 10, 3600);

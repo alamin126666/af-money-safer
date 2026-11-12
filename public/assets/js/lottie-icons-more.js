@@ -475,6 +475,33 @@
       layer(1, "zap", pulse(112), [
         grp([path([[13, 2.5], [4.5, 14], [11, 14], [10, 21.5], [18.5, 10], [12, 10]], null, null, true)])
       ])
+    ]),
+    /* Gift — the lid (with the bow) lifts and settles, a sparkle twinkles. */
+    "gift": top("gift", [
+      layer(1, "box", ks(P(12, 12)), [
+        grp([
+          rect(12, 15.75, 14, 9.5, 1.5),
+          path([[12, 11], [12, 20.5]])
+        ])
+      ]),
+      layer(2, "lid", ks(posKF([[0, 12, 12], [30, 12, 10.6], [60, 12, 12]])), [
+        grp([
+          rect(12, 9, 17, 4, 1),
+          path([[12, 7], [10, 4.8], [7.5, 4.2], [6.6, 5.4], [8, 7]], null, null, true),
+          path([[12, 7], [14, 4.8], [16.5, 4.2], [17.4, 5.4], [16, 7]], null, null, true)
+        ])
+      ]),
+      layer(3, "sparkle", ks(P(19.5, 4.5), A(19.5, 4.5), scaleKF([[0, 100], [30, 135], [60, 100]])), [
+        grp([path([[19.5, 2], [20.2, 3.8], [22, 4.5], [20.2, 5.2], [19.5, 7], [18.8, 5.2], [17, 4.5], [18.8, 3.8]], null, null, true)])
+      ])
+    ]),
+    /* Shield (no check) — plain outline, gentle pulse. Used for the 2FA OFF state. */
+    "shield-off": top("shield-off", [
+      layer(1, "shield", pulse(106), [
+        grp([path([[12, 3], [20, 6], [20, 12], [12, 21.5], [4, 12], [4, 6]],
+          [[0, 0], [0, 0], [0, 0], [4.8, -1.5], [0, 4.5], [0, 0]],
+          [[0, 0], [0, 0], [0, 4.5], [-4.8, -1.5], [0, 0], [0, 0]], true)])
+      ])
     ])
   });
 })();

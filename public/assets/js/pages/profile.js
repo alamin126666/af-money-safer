@@ -6,8 +6,15 @@ AF.ready(function () {
     $('#pId').textContent = p.accountId; $('#pDate').textContent = AF.date(p.registeredAtMs);
     $('#avatar').innerHTML = AF.avatar(p.avatar, 96);
     var a = $('#topAvatar'); if (a) { a.removeAttribute('data-icon'); a.innerHTML = AF.avatar(p.avatar, 40); }
-    var ts = $('#twofaState'); if (ts) { ts.textContent = p.totpEnabled ? AF.t('twofa_on') : AF.t('twofa_off'); }
-    var tb = $('#twofaBtnLabel'); if (tb) { tb.textContent = AF.t(p.totpEnabled ? 'twofa_disable' : 'twofa_enable'); }
+    var si = $('#secIc');
+    if (si) {
+      var icn = p.totpEnabled ? 'shield-check' : 'shield-off';
+      if (si.getAttribute('data-icon') !== icn) { si.setAttribute('data-icon', icn); }
+      si.classList.toggle('sec-on', !!p.totpEnabled); si.classList.toggle('sec-off', !p.totpEnabled);
+      AF.lottieFill(si);
+    }
+    var ss = $('#secState');
+    if (ss) { ss.textContent = AF.t(p.totpEnabled ? 'twofa_on' : 'twofa_off'); ss.classList.toggle('on', !!p.totpEnabled); ss.classList.toggle('off', !p.totpEnabled); }
     [].forEach.call(document.querySelectorAll('#segLang button'), function (b) { b.classList.toggle('on', b.getAttribute('data-v') === AF.lang()); });
     [].forEach.call(document.querySelectorAll('#segTheme button'), function (b) { b.classList.toggle('on', b.getAttribute('data-v') === AF.theme()); });
   }
@@ -67,53 +74,6 @@ AF.ready(function () {
       });
     }
     if (act === 'photo') { $('#photoFile').click(); }
-    if (act === '2fa') {
-      if (p.totpEnabled) {
-        // Disable: current password + a code from the Authenticator app.
-        simple(AF.t('twofa_disable'),
-          field(AF.t('current_password'), 'password', 'password', 'autocomplete="current-password"')
-          + field(AF.t('totp_code'), 'code', 'text', 'inputmode="numeric" maxlength="6" autocomplete="one-time-code"'),
-          function (d, m, f) {
-            return AF.api('profile/totp-disable.php', { password: d.password, code: d.code }).then(function (j) {
-              if (j.success) { m.close(); AF.toast(j.message, 'success'); load(); }
-              else if (j.data && j.data.fields) { AF.fieldErrors(f, j.data.fields); }
-            });
-          });
-        return;
-      }
-      // Enable, step 1: current password -> the server makes a secret.
-      simple(AF.t('twofa_enable'), field(AF.t('current_password'), 'password', 'password', 'autocomplete="current-password"'), function (d, m, f) {
-        return AF.api('profile/totp-setup.php', { password: d.password }).then(function (j) {
-          if (!j.success) { return; }
-          m.close();
-          // Step 2: show the secret + otpauth URL (copyable text — paste it
-          // into the Authenticator app), then verify one code to switch on.
-          var sec = j.data, pad;
-          var m2 = AF.modal({ title: AF.t('twofa_setup_title'), html:
-            '<p class="muted">' + AF.esc(AF.t('twofa_setup_note')) + '</p>'
-            + '<label class="field"><span>' + AF.esc(AF.t('totp_secret')) + '</span><div class="input"><input value="' + AF.esc(sec.secret) + '" readonly></div></label>'
-            + '<button class="btn btn-ghost btn-block" type="button" id="totpCopySec">' + AF.esc(AF.t('copy_secret')) + '</button>'
-            + '<label class="field" style="margin-top:10px"><span>' + AF.esc(AF.t('totp_url')) + '</span><div class="input"><input value="' + AF.esc(sec.otpauthUrl) + '" readonly></div></label>'
-            + '<button class="btn btn-ghost btn-block" type="button" id="totpCopyUrl">' + AF.esc(AF.t('copy_url')) + '</button>'
-            + '<p class="muted" style="margin-top:12px">' + AF.esc(AF.t('totp_enter_code')) + '</p>'
-            + '<div class="otp-boxes" id="mb"></div><div class="numpad" id="mp"></div>'
-            + '<button class="btn btn-primary btn-block" id="mc" type="button">' + AF.esc(AF.t('twofa_enable')) + '</button>',
-            onClose: function () { if (pad) { pad.destroy(); } } });
-          $('#totpCopySec', m2.el).addEventListener('click', function () { AF.copy(sec.secret); });
-          $('#totpCopyUrl', m2.el).addEventListener('click', function () { AF.copy(sec.otpauthUrl); });
-          pad = AF.otpPad({ boxes: $('#mb', m2.el), pad: $('#mp', m2.el), length: 6, onComplete: function () {} });
-          $('#mc', m2.el).addEventListener('click', function () {
-            if (pad.get().length !== 6) { AF.toast(AF.t('code_incomplete'), 'error'); return; }
-            var b = $('#mc', m2.el); AF.busy(b, true);
-            AF.api('profile/totp-verify.php', { code: pad.get() }).then(function (r) {
-              AF.busy(b, false);
-              if (r.success) { m2.close(); AF.toast(r.message, 'success'); load(); }
-              else { pad.shake(); pad.clear(); }
-            });
-          });
-        });
-      });
-    }
     if (act === 'avatar') {
       var grid = '<div class="avatars">' + ['default', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8'].map(function (k) { return '<button type="button" data-k="' + k + '" class="' + (p.avatar && p.avatar.type === 'preset' && p.avatar.key === k ? 'sel' : '') + '">' + AF.avatar({ type: 'preset', key: k }, 64) + '</button>'; }).join('') + '</div>';
       var m = AF.modal({ title: AF.t('choose_avatar'), html: grid });

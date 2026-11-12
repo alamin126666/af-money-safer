@@ -41,6 +41,8 @@
     chart: '<path d="M3 3v18h18"/><path d="M7 15v-3M12 15V7M17 15v-5"/>',
     settings: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.7M12 18.5v2.7M2.8 12h2.7M18.5 12h2.7M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M18.8 5.2l-1.9 1.9M7.1 16.9l-1.9 1.9"/>',
     'shield-check': '<path d="M12 3 20 6v6c0 4.5-3.2 8-8 9.5C7.2 20 4 16.5 4 12V6z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+    'shield-off': '<path d="M12 3 20 6v6c0 4.5-3.2 8-8 9.5C7.2 20 4 16.5 4 12V6z"/>',
+    gift: '<rect x="5" y="11" width="14" height="9.5" rx="1.5"/><rect x="3.5" y="7" width="17" height="4" rx="1"/><path d="M12 7v13.5"/><path d="M12 7C10 4.5 7.5 4 6.6 5.3 5.9 6.4 8 7.3 12 7z"/><path d="M12 7c2-2.5 4.5-3 5.4-1.7.7 1.1-1.4 2.3-5.4 1.7z"/>',
     sparkle: '<path d="M12 3.5 13.8 9l5.5 1.8-5.5 1.8L12 18l-1.8-5.4L4.7 10.8 10.2 9z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>',
     send: '<path d="M21.5 2.5 11 13"/><path d="M21.5 2.5 14.8 21.5l-3.8-8.5-8.5-3.8z"/>',
     plus: '<path d="M12 5v14M5 12h14"/>',
@@ -349,6 +351,109 @@
       if (k < 1) { requestAnimationFrame(step); }
     };
     requestAnimationFrame(step);
+  };
+  /* ---------- modern animated chart (shared by the user dashboard and admin reports) ----------
+     days = [{date:'YYYY-MM-DD', deposit:poisha, withdraw:poisha}].
+     Bars grow from the baseline with an easeOutCubic animation (~600ms),
+     gradient fills (emerald deposit, gold withdraw), soft gridlines with
+     compact ৳ labels, value labels on the tallest bars only, day labels
+     that thin out on narrow phones. Theme-aware; redraws are cheap.
+     A redraw cancels the previous animation. Instant when reduced motion. */
+  function withAlpha(c, a) {
+    var m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec((c || '').trim());
+    if (m) { var h = m[1]; if (h.length === 3) { h = h.split('').map(function (x) { return x + x; }).join(''); }
+      return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + a + ')'; }
+    var r = /^rgba?\(([^)]+)\)/.exec((c || '').trim());
+    if (r) { var p = r[1].split(','); return 'rgba(' + p[0] + ',' + p[1] + ',' + p[2] + ',' + a + ')'; }
+    return c;
+  }
+  AF.drawChart = function (cv, days, opts) {
+    opts = opts || {};
+    if (!cv) { return; }
+    if (cv._afChartRaf) { cancelAnimationFrame(cv._afChartRaf); cv._afChartRaf = null; }
+    days = days || [];
+    var empty = opts.emptyEl;
+    var hasData = days.some(function (d) { return d.deposit > 0 || d.withdraw > 0; });
+    if (empty) { empty.hidden = hasData; }
+    var ctx = cv.getContext('2d');
+    if (!ctx) { return; }
+    var h = opts.height || 180;
+    var w = cv.clientWidth || (cv.parentNode && cv.parentNode.clientWidth) || 320;
+    if (w <= 0) { return; }
+    var dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var cs = getComputedStyle(document.documentElement);
+    var css = function (n, fb) { var v = (cs.getPropertyValue(n) || '').trim(); return v || fb; };
+    var depC = css('--ok', '#12a36b'), wdC = css('--accent', '#f5c451'),
+        mutC = css('--muted', '#888888'), gridC = css('--border', '#e5e5e5');
+    var max = 0, maxDep = 0, maxWd = 0;
+    days.forEach(function (d) { max = Math.max(max, d.deposit, d.withdraw); maxDep = Math.max(maxDep, d.deposit); maxWd = Math.max(maxWd, d.withdraw); });
+    function fmtK(p) { /* poisha -> compact '৳1.2k' */
+      var t = (Number(p) || 0) / 100;
+      if (t >= 1000) { var k = t / 1000; return '৳' + (k >= 100 ? Math.round(k) : (Math.round(k * 10) / 10)) + 'k'; }
+      return '৳' + Math.round(t);
+    }
+    function barTop(x, y, bw2, bh, r) {
+      if (bh <= 0) { return; }
+      r = Math.min(r, bw2 / 2, bh);
+      ctx.beginPath();
+      ctx.moveTo(x, y + bh);
+      ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.lineTo(x + bw2 - r, y); ctx.quadraticCurveTo(x + bw2, y, x + bw2, y + r);
+      ctx.lineTo(x + bw2, y + bh); ctx.closePath(); ctx.fill();
+    }
+    function draw(p) {
+      var e = 1 - Math.pow(1 - p, 3); /* easeOutCubic */
+      ctx.clearRect(0, 0, w, h);
+      var padL = 36, padR = 6, padB = 22, padT = 18, plotH = h - padB - padT, plotW = w - padL - padR;
+      var base = padT + plotH;
+      if (max <= 0 || !days.length) { return; }
+      /* soft gridlines + y labels */
+      ctx.font = '10px sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      var lines = 4, g;
+      for (g = 0; g <= lines; g++) {
+        var gy = padT + plotH * g / lines;
+        ctx.strokeStyle = gridC; ctx.globalAlpha = 0.6; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(padL, gy + 0.5); ctx.lineTo(w - padR, gy + 0.5); ctx.stroke();
+        ctx.globalAlpha = 1; ctx.fillStyle = mutC;
+        ctx.fillText(fmtK(max * (1 - g / lines)), padL - 6, gy);
+      }
+      var gw = plotW / days.length, bw = Math.max(3, Math.min(11, (gw - 8) / 2));
+      var depG = ctx.createLinearGradient(0, padT, 0, base);
+      depG.addColorStop(0, depC); depG.addColorStop(1, withAlpha(depC, 0.35));
+      var wdG = ctx.createLinearGradient(0, padT, 0, base);
+      wdG.addColorStop(0, wdC); wdG.addColorStop(1, withAlpha(wdC, 0.35));
+      var step = Math.max(1, Math.ceil(26 / gw)); /* thin day labels out on narrow phones */
+      ctx.textAlign = 'center';
+      days.forEach(function (d, i) {
+        var x0 = padL + i * gw + (gw - bw * 2 - 3) / 2;
+        var dh = d.deposit > 0 ? Math.max(2, d.deposit / max * plotH) * e : 0;
+        var wh = d.withdraw > 0 ? Math.max(2, d.withdraw / max * plotH) * e : 0;
+        ctx.fillStyle = depG; barTop(x0, base - dh, bw, dh, 3);
+        ctx.fillStyle = wdG; barTop(x0 + bw + 3, base - wh, bw, wh, 3);
+        /* value labels on the tallest bar of each series only */
+        if (p > 0.7) {
+          ctx.globalAlpha = (p - 0.7) / 0.3; ctx.font = 'bold 10px sans-serif'; ctx.textBaseline = 'bottom';
+          if (d.deposit === maxDep && maxDep > 0) { ctx.fillStyle = depC; ctx.fillText(fmtK(maxDep), x0 + bw / 2, base - dh - 3); }
+          if (d.withdraw === maxWd && maxWd > 0) { ctx.fillStyle = wdC; ctx.fillText(fmtK(maxWd), x0 + bw + 3 + bw / 2, base - wh - 3); }
+          ctx.globalAlpha = 1;
+        }
+        if (i % step === 0) {
+          ctx.fillStyle = mutC; ctx.font = '10px sans-serif'; ctx.textBaseline = 'alphabetic';
+          ctx.fillText(String(new Date(d.date + 'T00:00:00+06:00').getDate()), x0 + bw + 1.5, h - 6);
+        }
+      });
+    }
+    if (reducedMotion()) { draw(1); return; }
+    var start = null;
+    var frame = function (t) {
+      if (start == null) { start = t; }
+      var k = Math.min(1, (t - start) / 600);
+      draw(k);
+      if (k < 1) { cv._afChartRaf = requestAnimationFrame(frame); } else { cv._afChartRaf = null; }
+    };
+    cv._afChartRaf = requestAnimationFrame(frame);
   };
   /** Scroll-reveal: observes .reveal elements and adds .in when visible. Safe to call repeatedly. */
   AF.reveal = function (root) {

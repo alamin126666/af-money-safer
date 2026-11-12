@@ -50,7 +50,12 @@ en: {
   promo_title:'Promo code', promo_desc:'Have a promo code? Enter it to get a bonus in your balance.', promo_redeem:'Redeem',
   'n.withdraw_awaiting_approval':'Withdraw of ৳{amount} is waiting for admin approval.',
   'n.withdraw_rejected':'Withdraw of ৳{amount} was rejected by the admin. The money was returned to your balance.',
-  'n.promo_redeemed':'Bonus of ৳{amount} was added to your balance.'
+  'n.promo_redeemed':'Bonus of ৳{amount} was added to your balance.',
+  gift_code:'Gift Code', gift_desc:'Got a gift code? Enter it below and the bonus goes straight to your balance.',
+  gift_code_ph:'e.g. AF-3838-BBB4', gift_claim:'Claim bonus', gift_history:'Claim history', gift_bonus:'Bonus [Tk]',
+  gift_empty:'No gift codes claimed yet.', gift_success:'Bonus added!', gift_invalid:'Enter a valid gift code.',
+  security:'Security', sec_hint_on:'Login and withdraw use your Authenticator app code.', sec_hint_off:'Turn on 2FA to protect your account with an Authenticator code.',
+  promo_code_invalid:'Code format: AF-0000-XXXX — letters, numbers and hyphens only.'
 },
 bn: {
   splash_tag:'নিরাপদ ডিপোজিট ও উইথড্র', login_sub:'আপনার অ্যাকাউন্টে লগইন করুন', email:'ইমেইল', password:'পাসওয়ার্ড', login:'লগইন',
@@ -102,5 +107,10 @@ bn: {
   promo_title:'প্রোমো কোড', promo_desc:'প্রোমো কোড আছে? বোনাস পেতে কোডটি দিন।', promo_redeem:'নিন',
   'n.withdraw_awaiting_approval':'৳{amount} উইথড্র অ্যাডমিন অনুমোদনের অপেক্ষায় আছে।',
   'n.withdraw_rejected':'৳{amount} উইথড্র অ্যাডমিন প্রত্যাখ্যান করেছেন। টাকা আপনার ব্যালেন্সে ফেরত দেওয়া হয়েছে।',
-  'n.promo_redeemed':'৳{amount} বোনাস আপনার ব্যালেন্সে যোগ হয়েছে।'
+  'n.promo_redeemed':'৳{amount} বোনাস আপনার ব্যালেন্সে যোগ হয়েছে।',
+  gift_code:'গিফট কোড', gift_desc:'গিফট কোড পেয়েছেন? নিচে কোডটি দিলে বোনাস সরাসরি আপনার ব্যালেন্সে যোগ হবে।',
+  gift_code_ph:'যেমন AF-3838-BBB4', gift_claim:'বোনাস নিন', gift_history:'ক্লেইমের হিস্টোরি', gift_bonus:'বোনাস [৳]',
+  gift_empty:'এখনো কোনো গিফট কোড নেওয়া হয়নি।', gift_success:'বোনাস যোগ হয়েছে!', gift_invalid:'সঠিক গিফট কোডটি দিন।',
+  security:'নিরাপত্তা', sec_hint_on:'লগইন ও উইথড্রে আপনার অথেনটিকেটর অ্যাপের কোড লাগবে।', sec_hint_off:'অ্যাকাউন্ট সুরক্ষিত রাখতে অথেনটিকেটর কোড দিয়ে 2FA চালু করুন।',
+  promo_code_invalid:'কোডের ফরম্যাট: AF-0000-XXXX — শুধু অক্ষর, সংখ্যা ও হাইফেন।'
 }};
