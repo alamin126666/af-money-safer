@@ -801,3 +801,10 @@ img{max-width:100%}
 .select-modern:focus-within .select-chev{color:var(--vivid)}
 .select-modern:focus-within .select-chev svg{transform:rotate(270deg)}
 .select-modern select option{background:var(--card);color:var(--text)}
+
+/* ---- Vertical centering: page content sits at the middle of the screen ---- */
+.wrap:not(.wrap-app){display:flex;flex-direction:column;justify-content:safe center;min-height:100vh;min-height:100dvh}
+@media(max-width:899px){
+  body.has-nav{display:flex;flex-direction:column}
+  body.has-nav .wrap-app{flex:1;display:flex;flex-direction:column;justify-content:safe center}
+}
