@@ -804,3 +804,23 @@ img{max-width:100%}
 
 /* ---- Maintenance page only: content vertically centered ---- */
 .page-maintenance .wrap{display:flex;flex-direction:column;justify-content:safe center;min-height:100vh;min-height:100dvh}
+
+/* ---- Animated icons pilot (Telegram-style, CSS/SVG only — no library, no extra weight) ---- */
+/* Bottom nav + sidebar: the active tab's icon pops in on landing; taps bounce. */
+.bottom-nav a.active .ic,.side-nav a.active .ic{animation:navPop .45s cubic-bezier(.34,1.56,.64,1) both}
+.bottom-nav a:active .ic{animation:navTap .3s ease both}
+.bottom-nav a.active .nav-dot{animation:dotIn .3s ease both}
+@keyframes navPop{0%{transform:scale(.4) rotate(-14deg);opacity:0}60%{transform:scale(1.18) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
+@keyframes navTap{0%{transform:scale(1)}40%{transform:scale(.78)}100%{transform:scale(1)}}
+@keyframes dotIn{from{transform:scale(0)}to{transform:scale(1)}}
+/* Success check: circle draws, then the tick draws, with a small pop. */
+.ring-anim{background:transparent!important;box-shadow:none!important}
+.anim-check{animation:checkPop .45s cubic-bezier(.34,1.56,.64,1) both}
+.anim-check circle{fill:none;stroke:currentColor;stroke-width:3;stroke-dasharray:151;stroke-dashoffset:151;animation:acDraw .55s .05s ease-out forwards}
+.anim-check path{fill:none;stroke:currentColor;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:36;stroke-dashoffset:36;animation:acDraw .35s .5s ease-out forwards}
+@keyframes acDraw{to{stroke-dashoffset:0}}
+@keyframes checkPop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .bottom-nav a.active .ic,.side-nav a.active .ic,.bottom-nav a:active .ic,.bottom-nav a.active .nav-dot,.anim-check,.anim-check circle,.anim-check path{animation:none!important}
+  .anim-check circle,.anim-check path{stroke-dashoffset:0}
+}

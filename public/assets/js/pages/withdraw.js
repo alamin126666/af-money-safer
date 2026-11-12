@@ -109,8 +109,8 @@ AF.ready(function () {
     var card = $('#statusCard'), tries = 0; card.hidden = false;
     function draw(t) {
       var ok = t.status === 'successful', bad = t.status === 'failed' || t.status === 'cancelled';
-      card.innerHTML = '<div class="status-big"><div class="ring" style="' + (ok ? 'color:var(--ok)' : bad ? 'color:var(--danger)' : 'color:var(--warn)') + '">'
-        + AF.icon(ok ? 'check' : bad ? 'x' : 'withdraw', 34) + '</div><h3>'
+      card.innerHTML = '<div class="status-big"><div class="ring' + (ok ? ' ring-anim' : '') + '" style="' + (ok ? 'color:var(--ok)' : bad ? 'color:var(--danger)' : 'color:var(--warn)') + '">'
+        + (ok ? AF.animCheck(64) : AF.icon(bad ? 'x' : 'withdraw', 34)) + '</div><h3>'
         + AF.esc(AF.t(ok ? 'wd_ok' : bad ? 'wd_failed' : 'wd_wait')) + '</h3>'
         + '<p><b>৳' + AF.esc(AF.money(t.amount)) + '</b> · ' + AF.esc(t.method) + ' · ' + AF.esc(t.walletNo || '') + '</p>'
         + '<span class="pill ' + AF.esc(t.status) + '">' + AF.esc(AF.t('s_' + t.status)) + '</span>'

@@ -57,6 +57,8 @@
     zap: '<path d="M13 2.5 4.5 14H11l-1 7.5L18.5 10H12z"/>'
   };
   AF.icon = function (n, s) { s = s || 20; return '<svg class="ic" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || '') + '</svg>'; };
+  /* Animated success check (Telegram-style): circle + tick draw themselves in. Uses currentColor. */
+  AF.animCheck = function (s) { s = s || 52; return '<svg class="anim-check" width="' + s + '" height="' + s + '" viewBox="0 0 52 52" fill="none" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M14.5 27l7.5 7.5L38 18.5"/></svg>'; };
   AF.logo = function (s) { return '<img src="/assets/img/logo.svg" width="' + s + '" height="' + s + '" alt="AF MONEY SAFER">'; };
 
   var COLORS = ['#12b886', '#f5c451', '#4c8bf5', '#e2136e', '#f6921e', '#8b5cf6', '#14b8a6', '#ef4444'];
