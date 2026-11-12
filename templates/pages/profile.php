@@ -36,6 +36,11 @@
       <span data-i18n="gift_code"></span>
       <span class="m-chev" data-icon="chevron"></span>
     </a>
+    <a class="menu-item" href="/saved-numbers.php">
+      <span class="m-ic" data-icon="wallet"></span>
+      <span data-i18n="saved_numbers"></span>
+      <span class="m-chev" data-icon="chevron"></span>
+    </a>
   </div>
 </section>
 <section class="card">

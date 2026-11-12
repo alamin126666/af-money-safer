@@ -57,6 +57,26 @@ final class SavedNumbersService
         return ['SAVED_NUMBER_SAVED', ['id' => $id, 'name' => $name, 'method' => $method, 'walletNo' => $wallet]];
     }
 
+    public static function update(array $user, array $in): array
+    {
+        $id = is_string($in['id'] ?? null) ? $in['id'] : '';
+        if (!preg_match('/^[0-9a-f]{20}$/', $id)) { throw new ApiException('NOT_FOUND', 404); }
+        $ref = self::col()->document($id);
+        $s = $ref->snapshot();
+        if (!$s->exists() || ($s->data()['userId'] ?? '') !== $user['uid']) { throw new ApiException('NOT_FOUND', 404); }
+        RateLimit::hit("savednum:{$user['uid']}", 30, 3600);
+        $name = Validator::name(is_string($in['name'] ?? null) ? $in['name'] : '');
+        $method = is_string($in['method'] ?? null) ? $in['method'] : '';
+        if ($name === null) { throw new ApiException('VALIDATION_FAILED', 422, ['fields' => ['name' => 'invalid']]); }
+        if (!in_array($method, self::METHODS, true)) { throw new ApiException('INVALID_METHOD', 422); }
+        $wallet = self::normalizeWallet($in['walletNo'] ?? '');
+        $ref->set([
+            'userId' => $user['uid'], 'name' => $name, 'method' => $method, 'walletNo' => $wallet,
+            'createdAtMs' => (int)($s->data()['createdAtMs'] ?? Time::ms()),
+        ]);
+        return ['SAVED_NUMBER_UPDATED', ['id' => $id, 'name' => $name, 'method' => $method, 'walletNo' => $wallet]];
+    }
+
     public static function remove(array $user, array $in): array
     {
         $id = is_string($in['id'] ?? null) ? $in['id'] : '';

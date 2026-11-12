@@ -12,5 +12,6 @@ Api::handle(function ($u) {
     if ($m === 'GET') { return SavedNumbersService::list($u); }
     $in = Request::json();
     if ($m === 'DELETE') { return SavedNumbersService::remove($u, $in); }
+    if ($m === 'POST' && is_string($in['id'] ?? null) && $in['id'] !== '') { return SavedNumbersService::update($u, $in); }
     return SavedNumbersService::add($u, $in);
 }, ['methods' => ['GET', 'POST', 'DELETE'], 'auth' => true]);

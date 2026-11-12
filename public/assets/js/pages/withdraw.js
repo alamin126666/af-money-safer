@@ -50,10 +50,8 @@ AF.ready(function () {
       items.forEach(function (it) {
         var el = document.createElement('div'); el.className = 'saved-num';
         el.innerHTML = '<div class="tx-ic">' + AF.lotIcon('wallet', 18) + '</div>'
-          + '<div class="tx-main"><b>' + AF.esc(it.name) + '</b><small>' + AF.esc(it.method) + ' · ' + AF.esc(maskNo(it.walletNo)) + '</small></div>'
-          + '<button class="icon-btn" type="button" data-del="' + AF.esc(it.id) + '" aria-label="Delete">' + AF.lotIcon('x', 16) + '</button>';
-        el.addEventListener('click', function (e) {
-          if (e.target.closest('[data-del]')) { return; }
+          + '<div class="tx-main"><b>' + AF.esc(it.name) + '</b><small>' + AF.esc(it.method) + ' · ' + AF.esc(maskNo(it.walletNo)) + '</small></div>';
+        el.addEventListener('click', function () {
           var btn = document.querySelector('.method[data-m="' + it.method + '"]');
           if (btn) { btn.click(); }
           wno.value = it.walletNo;
@@ -63,20 +61,6 @@ AF.ready(function () {
         savedList.appendChild(el);
       });
       AF.apply(savedList);
-    });
-  }
-  if (savedList) {
-    savedList.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-del]'); if (!b) { return; }
-      AF.api('withdraw/saved-numbers.php', { id: b.getAttribute('data-del') }, { method: 'DELETE' }).then(function (j) { if (j.success) { loadSaved(); } });
-    });
-  }
-  var saveBtn = $('#saveNumBtn');
-  if (saveBtn) {
-    saveBtn.addEventListener('click', function () {
-      var d = AF.form(f);
-      if (!d.walletNo || !d.holderName) { AF.toast(AF.t('saved_num_fill_first'), 'error'); return; }
-      AF.api('withdraw/saved-numbers.php', { name: d.holderName, method: method, walletNo: d.walletNo }, { ok: true }).then(function (j) { if (j.success) { loadSaved(); } });
     });
   }
   loadSaved();

@@ -106,6 +106,7 @@ return [
     'TOTP_ENABLED' => 'Two-factor authentication is on.',
     'TOTP_DISABLED' => 'Two-factor authentication is off.',
     'SAVED_NUMBER_SAVED' => 'Number saved.',
+    'SAVED_NUMBER_UPDATED' => 'Number updated.',
     'SAVED_NUMBER_DELETED' => 'Number removed.',
     'PROMO_CREATED' => 'Promo code created.',
     'PROMO_UPDATED' => 'Promo code updated.',

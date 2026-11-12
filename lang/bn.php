@@ -106,6 +106,7 @@ return [
     'TOTP_ENABLED' => 'দুই ধাপের যাচাইকরণ চালু হয়েছে।',
     'TOTP_DISABLED' => 'দুই ধাপের যাচাইকরণ বন্ধ হয়েছে।',
     'SAVED_NUMBER_SAVED' => 'নম্বর সংরক্ষিত হয়েছে।',
+    'SAVED_NUMBER_UPDATED' => 'নম্বর আপডেট হয়েছে।',
     'SAVED_NUMBER_DELETED' => 'নম্বর মুছে ফেলা হয়েছে।',
     'PROMO_CREATED' => 'প্রোমো কোড তৈরি হয়েছে।',
     'PROMO_UPDATED' => 'প্রোমো কোড আপডেট হয়েছে।',
