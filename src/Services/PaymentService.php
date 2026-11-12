@@ -288,28 +288,14 @@ final class PaymentService
     }
 
     // ================================================================ side effects (best effort)
+    // Website notification only — no e-mail on deposit/withdraw (owner's choice).
     public static function afterDeposit(string $uid, int $net): void
     {
         Notifier::push($uid, 'n.deposit_success', ['amount' => $net]);
-        self::mailUser($uid, 'deposit_success', $net);
     }
 
     public static function afterWithdraw(string $uid, string $result, int $amount): void
     {
         Notifier::push($uid, $result === 'success' ? 'n.withdraw_success' : 'n.withdraw_failed', ['amount' => $amount]);
-        self::mailUser($uid, $result === 'success' ? 'withdraw_success' : 'withdraw_failed', $amount);
-    }
-
-    private static function mailUser(string $uid, string $event, int $amount): void
-    {
-        try {
-            $s = Firebase::db()->collection('users')->document($uid)->snapshot();
-            if ($s->exists()) {
-                $u = $s->data();
-                Mailer::sendTxNotice((string)$u['email'], $event, Money::fmt($amount), in_array($u['lang'] ?? '', ['bn', 'en'], true) ? $u['lang'] : 'bn');
-            }
-        } catch (\Throwable $e) {
-            Logger::error('tx.mail_failed', ['e' => $e->getMessage()]);
-        }
     }
 }

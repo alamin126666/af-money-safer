@@ -36,15 +36,6 @@ final class Mailer
         ], $lang);
     }
 
-    /** Deposit / withdraw notification. $event: deposit_success | withdraw_success | withdraw_failed */
-    public static function sendTxNotice(string $to, string $event, string $amountFmt, string $lang): bool
-    {
-        return self::send($to, Lang::t("mail.tx.$event.subject", [], $lang), 'security', [
-            'title' => Lang::t("mail.tx.$event.title", [], $lang),
-            'intro' => Lang::t("mail.tx.$event.intro", ['amount' => $amountFmt], $lang),
-        ], $lang);
-    }
-
     private static function send(string $to, string $subject, string $template, array $vars, string $lang): bool
     {
         $vars += ['lang' => $lang, 'appName' => (string)Config::get('app.name')];
