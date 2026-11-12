@@ -62,8 +62,7 @@
 
   /* ---------- Lottie icons (custom JSON, always looping) ---------- */
   var LOT = window.AF_LOTTIE || null;
-  var LOT_NAMES = { home: 1, deposit: 1, withdraw: 1, history: 1, user: 1 };
-  var lotAnims = [];
+  var lotEls = []; /* spans with a live Lottie animation */
   function lotRgb(c) {
     var m = (c || '').match(/rgba?\(([^)]+)\)/);
     if (!m) return [0, 0, 0];
@@ -73,24 +72,47 @@
   function lotTint(json, rgb) {
     return JSON.parse(JSON.stringify(json).split('[0.999,0.999,0.999,1]').join('[' + rgb[0].toFixed(3) + ',' + rgb[1].toFixed(3) + ',' + rgb[2].toFixed(3) + ',1]'));
   }
+  /* Pause offscreen icons (long lists, admin tables). */
+  var lotIO = ('IntersectionObserver' in window) ? new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      var e = en.target, a = e._lotAnim;
+      if (!a) return;
+      e._lotVisible = en.isIntersecting;
+      try { if (en.isIntersecting && !document.hidden) a.play(); else a.pause(); } catch (err) {}
+    });
+  }, { rootMargin: '40px' }) : null;
   function lotDestroy(e) {
     if (!e._lotAnim) return;
     try { e._lotAnim.destroy(); } catch (err) {}
-    var i = lotAnims.indexOf(e._lotAnim);
-    if (i > -1) lotAnims.splice(i, 1);
+    var i = lotEls.indexOf(e);
+    if (i > -1) lotEls.splice(i, 1);
+    if (lotIO) { try { lotIO.unobserve(e); } catch (err) {} }
     e._lotAnim = null;
   }
-  /* Fill one [data-icon] span: looping Lottie for the 5 nav/action icons when
-     they sit in the bottom nav, sidebar or a dashboard action card; the plain
-     SVG everywhere else. Hidden containers keep the static icon. */
+  /* Destroy animations whose element left the page (admin SPA re-renders,
+     avatar swaps, icon swaps) so their loops do not run forever. */
+  var lotMO = new MutationObserver(function (muts) {
+    muts.forEach(function (m) {
+      m.removedNodes.forEach(function (node) {
+        if (!node || node.nodeType !== 1) return;
+        if (node.hasAttribute && node.hasAttribute('data-lot')) lotDestroy(node);
+        if (node.querySelectorAll) $$('[data-lot]', node).forEach(function (e) { lotDestroy(e); });
+      });
+    });
+  });
+  lotMO.observe(document.documentElement, { childList: true, subtree: true });
+  /* Fill one [data-icon] span with its looping Lottie — every icon, every
+     page, admin panel included. Exceptions: the theme toggle (it swaps icons
+     itself), the avatar slot and the password eye toggle. Hidden containers
+     keep the static icon. */
   AF.lottieFill = function (e) {
     var n = e.getAttribute('data-icon'), s = parseInt(e.getAttribute('data-size') || '20', 10);
     if (e._lotAnim && e._lotName === n && e._lotSize === s) return;
     lotDestroy(e);
-    var animated = LOT && window.lottie && LOT_NAMES[n]
-      && (e.closest('.bottom-nav') || e.closest('.side-nav') || e.classList.contains('action-ic'))
+    var animated = LOT && window.lottie && LOT[n]
+      && !e.closest('[data-action=theme]') && !e.closest('#topAvatar') && !e.closest('button.eye')
       && e.getClientRects().length > 0
-      && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      && !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
     if (!animated) { e.innerHTML = AF.icon(n, s); e.removeAttribute('data-lot'); return; }
     e.innerHTML = '';
     var box = document.createElement('span');
@@ -102,8 +124,9 @@
         animationData: lotTint(LOT[n], lotRgb(getComputedStyle(e).color))
       });
       e._lotName = n; e._lotSize = s;
-      lotAnims.push(e._lotAnim);
+      lotEls.push(e);
       e.setAttribute('data-lot', '1');
+      if (lotIO) lotIO.observe(e);
     } catch (err) { e._lotAnim = null; e.innerHTML = AF.icon(n, s); }
   };
   /* Theme switch changes the icon colour — rebuild the Lottie copies. */
@@ -113,7 +136,10 @@
   document.addEventListener('af:theme', function () { AF.reLottie(); });
   /* Pause every looping icon while the tab is hidden (battery). */
   document.addEventListener('visibilitychange', function () {
-    lotAnims.forEach(function (a) { try { if (document.hidden) a.pause(); else a.play(); } catch (err) {} });
+    lotEls.forEach(function (e) {
+      var a = e._lotAnim; if (!a) return;
+      try { if (document.hidden || e._lotVisible === false) a.pause(); else a.play(); } catch (err) {}
+    });
   });
   AF.logo = function (s) { return '<img src="/assets/img/logo.svg" width="' + s + '" height="' + s + '" alt="AF MONEY SAFER">'; };
 

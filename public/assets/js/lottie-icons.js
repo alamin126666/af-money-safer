@@ -7,8 +7,8 @@
 (function () {
   var STROKE = { "ty": "st", "c": { "a": 0, "k": [0.999, 0.999, 0.999, 1] }, "o": { "a": 0, "k": 100 }, "w": { "a": 0, "k": 2 }, "lc": 2, "lj": 2, "ml": 4, "nm": "Stroke" };
   var TR = { "ty": "tr", "p": { "a": 0, "k": [0, 0] }, "a": { "a": 0, "k": [0, 0] }, "s": { "a": 0, "k": [100, 100] }, "r": { "a": 0, "k": 0 }, "o": { "a": 0, "k": 100 }, "sk": { "a": 0, "k": 0 }, "sa": { "a": 0, "k": 0 }, "nm": "Transform" };
-  function path(v, i, o) {
-    return { "ty": "sh", "ks": { "a": 0, "k": { "i": i || v.map(function () { return [0, 0]; }), "o": o || v.map(function () { return [0, 0]; }), "v": v, "c": false } } };
+  function path(v, i, o, c) {
+    return { "ty": "sh", "ks": { "a": 0, "k": { "i": i || v.map(function () { return [0, 0]; }), "o": o || v.map(function () { return [0, 0]; }), "v": v, "c": !!c } } };
   }
   function grp(items) {
     var it = items.concat([STROKE, TR]);
@@ -39,6 +39,36 @@
     });
     return { "a": 1, "k": k };
   }
+  /* non-uniform scale keyframes: [[t, sx, sy], ...] */
+  function sxyKF(frames) {
+    var k = frames.map(function (f, i) {
+      var next = frames[(i + 1) % frames.length];
+      var o = { "t": f[0], "s": [f[1], f[2], 100] };
+      if (i < frames.length - 1) { o.i = { "x": [0.42], "y": [1] }; o.o = { "x": [0.58], "y": [0] }; o.e = [next[1], next[2], 100]; }
+      return o;
+    });
+    return { "a": 1, "k": k };
+  }
+  /* rotation keyframes: [[t, deg], ...]; linear = true for steady spins */
+  function rotKF(frames, linear) {
+    var e = linear ? { "x": [0.833], "y": [0.833] } : { "x": [0.42], "y": [1] };
+    var o2 = linear ? { "x": [0.167], "y": [0.167] } : { "x": [0.58], "y": [0] };
+    var k = frames.map(function (f, i) {
+      var next = frames[(i + 1) % frames.length];
+      var o = { "t": f[0], "s": [f[1]] };
+      if (i < frames.length - 1) { o.i = e; o.o = o2; o.e = [next[1]]; }
+      return o;
+    });
+    return { "a": 1, "k": k };
+  }
+  function ell(cx, cy, w, h) {
+    return { "ty": "el", "p": { "a": 0, "k": [cx, cy] }, "s": { "a": 0, "k": [w, h] }, "nm": "Ellipse" };
+  }
+  function rect(cx, cy, w, h, r) {
+    return { "ty": "rc", "p": { "a": 0, "k": [cx, cy] }, "s": { "a": 0, "k": [w, h] }, "r": { "a": 0, "k": r || 0 }, "nm": "Rect" };
+  }
+  /* shared by lottie-icons-more.js */
+  window.AF_LOTTIE_BUILD = { path: path, grp: grp, layer: layer, ks: ks, posKF: posKF, scaleKF: scaleKF, sxyKF: sxyKF, rotKF: rotKF, ell: ell, rect: rect, top: top };
   function top(nm, layers) {
     return { "v": "5.7.4", "fr": 30, "ip": 0, "op": 60, "w": 24, "h": 24, "nm": nm, "ddd": 0, "assets": [], "layers": layers };
   }
