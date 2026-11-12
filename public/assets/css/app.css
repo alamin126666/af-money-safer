@@ -801,3 +801,6 @@ img{max-width:100%}
 .select-modern:focus-within .select-chev{color:var(--vivid)}
 .select-modern:focus-within .select-chev svg{transform:rotate(270deg)}
 .select-modern select option{background:var(--card);color:var(--text)}
+
+/* ---- Maintenance page only: content vertically centered ---- */
+.page-maintenance .wrap{display:flex;flex-direction:column;justify-content:safe center;min-height:100vh;min-height:100dvh}
