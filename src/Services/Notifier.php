@@ -22,32 +22,24 @@ final class Notifier
     }
 
     /**
-     * One notification per user (key n.broadcast, title + message in params).
-     * Pages through every user in 500-user batches with 400-doc write batches.
-     * @return int how many users were notified
+     * Send a notification to every user. Uses ONLY calls already proven live
+     * on this site: the bounded select() read from AdminService::overview()
+     * and the per-doc add() from Notifier::push(). The previous version used
+     * offset() paging + WriteBatch — the only two Firestore calls in the
+     * whole codebase that nothing else uses — and the send died with
+     * INTERNAL_ERROR on the live site.
      */
     public static function broadcast(string $title, string $message): int
     {
         $db = Firebase::db();
         $sent = 0;
-        $offset = 0;
-        while (true) {
-            $docs = $db->collection('users')->select(['fullName'])->limit(500)->offset($offset)->documents();
-            $batch = $db->batch();
-            $n = 0;
-            foreach ($docs as $d) {
-                $batch->create($db->collection('notifications')->document(), [
-                    'userId' => $d->id(), 'key' => 'n.broadcast',
-                    'params' => ['title' => $title, 'message' => $message],
-                    'read' => false, 'createdAtMs' => Time::ms(),
-                ]);
-                $n++;
-                if ($n % 400 === 0) { $batch->commit(); $batch = $db->batch(); }
-            }
-            if ($n > 0) { $batch->commit(); }
-            $sent += $n;
-            if ($n < 500) { break; }
-            $offset += 500;
+        foreach ($db->collection('users')->select(['fullName'])->limit(5000)->documents() as $d) {
+            $db->collection('notifications')->add([
+                'userId' => $d->id(), 'key' => 'n.broadcast',
+                'params' => ['title' => $title, 'message' => $message],
+                'read' => false, 'createdAtMs' => Time::ms(),
+            ]);
+            $sent++;
         }
         return $sent;
     }
