@@ -808,3 +808,20 @@ img{max-width:100%}
   body.has-nav{display:flex;flex-direction:column}
   body.has-nav .wrap-app{flex:1;display:flex;flex-direction:column;justify-content:safe center}
 }
+
+/* ---- Dashboard size-up on phones: bigger cards, type and icons so the screen feels full ---- */
+@media(max-width:899px){
+  .page-dashboard .hello-avatar{width:60px;height:60px}
+  .page-dashboard .hello-text h2{font-size:1.6rem}
+  .page-dashboard .balance-card{padding:24px 20px}
+  .page-dashboard .amount{font-size:2.8rem}
+  .page-dashboard .card.mini{padding:20px 18px}
+  .page-dashboard .amount-sm{font-size:1.55rem}
+  .page-dashboard .action-card{padding:22px 18px;min-height:136px;justify-content:center;gap:8px}
+  .page-dashboard .action-card b{font-size:1.08rem}
+  .page-dashboard .action-card small{font-size:.88rem}
+  .page-dashboard .action-ic{width:54px;height:54px;border-radius:16px}
+  .page-dashboard .quick-grid .ntf{grid-column:1/-1;flex-direction:row;align-items:center;gap:14px;min-height:0}
+  .page-dashboard .quick-grid .ntf .action-ic{margin-bottom:0}
+  .page-dashboard .grid-2,.page-dashboard .quick-grid{gap:14px}
+}
