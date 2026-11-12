@@ -20,7 +20,7 @@ AF.ready(function () {
       '<label class="m-toggle" aria-label="Maintenance mode"><input type="checkbox" name="maintenance" ' + (s.maintenance ? 'checked' : '') + '><span class="m-track"><span class="m-knob"></span></span></label></div>' +
       '<div class="maint-live" id="maintLive" hidden></div>' +
       '<div class="maint-fields" id="maintFields"><label class="field"><span>Reason (shown to users)</span><div class="input"><input name="maintenanceReason" value="' + E(s.maintenanceReason || '') + '" maxlength="200" placeholder="e.g. Server upgrade in progress"></div></label>' +
-      '<label class="field"><span>How long</span><div class="input"><select name="maintenanceMinutes">' + mins() + '</select></div></label></div></section>' +
+      '<label class="field"><span>How long</span><div class="input select-modern"><select name="maintenanceMinutes">' + mins() + '</select><span class="select-chev">' + AF.icon('chevron', 18) + '</span></div></label></div></section>' +
       '<button class="btn btn-primary btn-block">Save settings</button>';
     var sf = $('#sf');
     (function preview() {
