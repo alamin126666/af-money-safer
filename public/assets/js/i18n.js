@@ -34,7 +34,8 @@ en: {
   'n.withdraw_success':'Withdraw of ৳{amount} was completed.', 'n.withdraw_failed':'Withdraw failed. ৳{amount} was returned to your balance.',
   'n.balance_adjusted':'Your balance was adjusted by ৳{amount}.', logout_ok:'Logged out',
   maint_title:"We'll be back soon", maint_sub:'AF MONEY SAFER is under maintenance right now.', maint_reason:'Reason', maint_back:'Expected back by', maint_note:"You'll be taken to the login page automatically when we're back.", cd_days:'Days', cd_hours:'Hours', cd_mins:'Minutes', cd_secs:'Seconds',
-  account_disabled_title:'Account disabled', account_disabled_msg:'This account has been disabled and can no longer be used. Please contact the admin for help.', go_to_login:'Go to login'
+  account_disabled_title:'Account disabled', account_disabled_msg:'This account has been disabled and can no longer be used. Please contact the admin for help.', go_to_login:'Go to login',
+  try_again:'Try again', new_deposit:'New deposit'
 },
 bn: {
   splash_tag:'নিরাপদ ডিপোজিট ও উইথড্র', login_sub:'আপনার অ্যাকাউন্টে লগইন করুন', email:'ইমেইল', password:'পাসওয়ার্ড', login:'লগইন',
@@ -70,5 +71,6 @@ bn: {
   'n.withdraw_success':'৳{amount} উইথড্র সম্পন্ন হয়েছে।', 'n.withdraw_failed':'উইথড্র ব্যর্থ হয়েছে। ৳{amount} আপনার ব্যালেন্সে ফেরত দেওয়া হয়েছে।',
   'n.balance_adjusted':'আপনার ব্যালেন্স ৳{amount} সমন্বয় করা হয়েছে।', logout_ok:'লগআউট হয়েছে',
   maint_title:'শীঘ্রই ফিরে আসছি', maint_sub:'AF MONEY SAFER এখন রক্ষণাবেক্ষণের কাজে আছে।', maint_reason:'কারণ', maint_back:'ফিরে আসার সম্ভাব্য সময়', maint_note:'কাজ শেষ হলেই আপনাকে অটোমেটিক লগইন পেজে নিয়ে যাওয়া হবে।', cd_days:'দিন', cd_hours:'ঘণ্টা', cd_mins:'মিনিট', cd_secs:'সেকেন্ড',
-  account_disabled_title:'অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে', account_disabled_msg:'এই অ্যাকাউন্টটি নিষ্ক্রিয় করা হয়েছে এবং আর ব্যবহার করা যাবে না। সাহায্যের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', go_to_login:'লগইনে যান'
+  account_disabled_title:'অ্যাকাউন্ট নিষ্ক্রিয় করা হয়েছে', account_disabled_msg:'এই অ্যাকাউন্টটি নিষ্ক্রিয় করা হয়েছে এবং আর ব্যবহার করা যাবে না। সাহায্যের জন্য অ্যাডমিনের সাথে যোগাযোগ করুন।', go_to_login:'লগইনে যান',
+  try_again:'আবার চেষ্টা করুন', new_deposit:'নতুন ডিপোজিট'
 }};
