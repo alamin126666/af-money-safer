@@ -76,13 +76,14 @@ AF.ready(function () {
     function draw(t) {
       var ok = t.status === 'successful', bad = t.status === 'failed' || t.status === 'cancelled';
       card.innerHTML = '<div class="status-big"><div class="ring' + (ok ? ' ring-anim' : '') + '" style="' + (ok ? 'color:var(--ok)' : bad ? 'color:var(--danger)' : 'color:var(--warn)') + '">'
-        + (ok ? AF.animCheck(64) : AF.icon(bad ? 'x' : 'deposit', 34)) + '</div><h3>'
+        + (ok ? AF.animCheck(64) : AF.lotIcon(bad ? 'x' : 'deposit', 34)) + '</div><h3>'
         + AF.esc(AF.t(ok ? 'pay_ok' : bad ? 'pay_failed' : 'pay_wait')) + '</h3>'
         + (ok || bad ? '' : '<p class="muted">' + AF.esc(AF.t('pay_wait_hint')) + '</p>')
         + '<p><b>৳' + AF.esc(AF.money(t.amount)) + '</b> · ' + AF.esc(t.method) + '</p>'
         + (t.fee > 0 ? '<div class="summary" style="text-align:left"><div class="row"><span class="muted">' + AF.esc(AF.t('fee_line')) + '</span><b>৳' + AF.esc(AF.money(t.fee)) + '</b></div>'
         + '<div class="row"><span class="muted">' + AF.esc(AF.t('you_receive')) + '</span><b>৳' + AF.esc(AF.money(t.credited ? t.credited : t.amount - t.fee)) + '</b></div></div>' : '')
         + '<a class="btn btn-primary" href="/dashboard.php">' + AF.esc(AF.t('nav_home')) + '</a></div>';
+      AF.apply(card);
     }
     (function poll() {
       AF.api('deposit/status.php', { txId: id }, { quiet: true }).then(function (j) {

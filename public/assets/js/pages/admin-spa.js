@@ -166,7 +166,7 @@
   }
 
   function statCard(ic, tone, label, value, sub) {
-    return '<section class="card stat-card"><span class="stat-ic ' + tone + '">' + AF.icon(ic, 22) + '</span><div><span class="label">' + label + '</span><b>' + value + '</b><small>' + sub + '</small></div></section>';
+    return '<section class="card stat-card"><span class="stat-ic ' + tone + '">' + AF.lotIcon(ic, 22) + '</span><div><span class="label">' + label + '</span><b>' + value + '</b><small>' + sub + '</small></div></section>';
   }
 
   function vDashboard() {
@@ -199,7 +199,7 @@
       var items = j.data.items.slice(0, 10);
       if (!items.length) { el.innerHTML = '<div class="empty">No transactions yet.</div>'; return; }
       el.innerHTML = '<div class="scroll-x"><table class="tbl"><tr><th>Date</th><th>Type</th><th>Amount</th><th>Fee</th><th>Status</th><th></th></tr>' + items.map(function (t) {
-        return '<tr><td>' + E(dt(t.createdAtMs)) + '</td><td>' + E(t.type + ' · ' + t.method) + '</td><td>' + E(tk(t.amount)) + '</td><td>' + E(tk(t.fee)) + '</td><td>' + st(t.status) + (t.needsReview ? ' ' + AF.icon('alert', 14) : '') + '</td><td><button class="link-btn" data-t="' + E(t.id) + '">Open</button></td></tr>';
+        return '<tr><td>' + E(dt(t.createdAtMs)) + '</td><td>' + E(t.type + ' · ' + t.method) + '</td><td>' + E(tk(t.amount)) + '</td><td>' + E(tk(t.fee)) + '</td><td>' + st(t.status) + (t.needsReview ? ' ' + AF.lotIcon('alert', 14) : '') + '</td><td><button class="link-btn" data-t="' + E(t.id) + '">Open</button></td></tr>';
       }).join('') + '</table></div>';
       el.addEventListener('click', function (e) { var b = e.target.closest('[data-t]'); if (b) { A.txModal(b.getAttribute('data-t')); } });
     });
@@ -230,7 +230,7 @@
         if (!j.success) { return; }
         var el = document.getElementById('spaRes'); if (!el) { return; }
         el.innerHTML = '<div class="scroll-x"><table class="tbl"><tr><th>Date</th><th>Type</th><th>Amount</th><th>Fee</th><th>Status</th><th></th></tr>' + j.data.items.map(function (t) {
-          return '<tr><td>' + E(dt(t.createdAtMs)) + '</td><td>' + E(t.type + ' · ' + t.method) + '</td><td>' + E(tk(t.amount)) + '</td><td>' + E(tk(t.fee)) + '</td><td>' + st(t.status) + (t.needsReview ? ' ' + AF.icon('alert', 14) : '') + '</td><td><button class="link-btn" data-t="' + E(t.id) + '">Open</button></td></tr>';
+          return '<tr><td>' + E(dt(t.createdAtMs)) + '</td><td>' + E(t.type + ' · ' + t.method) + '</td><td>' + E(tk(t.amount)) + '</td><td>' + E(tk(t.fee)) + '</td><td>' + st(t.status) + (t.needsReview ? ' ' + AF.lotIcon('alert', 14) : '') + '</td><td><button class="link-btn" data-t="' + E(t.id) + '">Open</button></td></tr>';
         }).join('') + '</table></div>';
       });
     }
@@ -266,11 +266,11 @@
       }
       form.innerHTML = '<section class="card"><h3 style="margin-top:0">Limits</h3>' + f('minDeposit', 'Minimum deposit (BDT)') + f('maxDeposit', 'Maximum deposit (BDT)') + f('minWithdraw', 'Minimum withdraw (BDT, at least 100)') + f('maxWithdraw', 'Maximum withdraw (BDT)')
         + '<h3>Fees</h3>' + f('depositFeePercent', 'Deposit fee (%)') + f('withdrawFeePercent', 'Withdraw fee (%)') + feePreviewBox() + '</section>'
-        + '<section class="card maint-card"><div class="maint-head"><span class="maint-ic">' + AF.icon('settings', 22) + '</span><div class="maint-title"><h3>Maintenance mode</h3><p class="muted">When on, users are sent to a maintenance page with the reason and a countdown. Admins are not affected.</p></div>'
+        + '<section class="card maint-card"><div class="maint-head"><span class="maint-ic">' + AF.lotIcon('settings', 22) + '</span><div class="maint-title"><h3>Maintenance mode</h3><p class="muted">When on, users are sent to a maintenance page with the reason and a countdown. Admins are not affected.</p></div>'
         + '<label class="m-toggle" aria-label="Maintenance mode"><input type="checkbox" name="maintenance" ' + (s.maintenance ? 'checked' : '') + '><span class="m-track"><span class="m-knob"></span></span></label></div>'
         + '<div class="maint-live" id="spaMaintLive" hidden></div>'
         + '<div class="maint-fields" id="spaMaintFields"><label class="field"><span>Reason (shown to users)</span><div class="input"><input name="maintenanceReason" value="' + E(s.maintenanceReason || '') + '" maxlength="200" placeholder="e.g. Server upgrade in progress"></div></label>'
-        + '<label class="field"><span>How long</span><div class="input select-modern"><select name="maintenanceMinutes">' + mins() + '</select><span class="select-chev">' + AF.icon('chevron', 18) + '</span></div></label></div></section>'
+        + '<label class="field"><span>How long</span><div class="input select-modern"><select name="maintenanceMinutes">' + mins() + '</select><span class="select-chev">' + AF.lotIcon('chevron', 18) + '</span></div></label></div></section>'
         + '<button class="btn btn-primary btn-block">Save settings</button>';
       feePreview(form);
       form.addEventListener('input', function () { feePreview(form); });

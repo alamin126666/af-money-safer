@@ -14,7 +14,8 @@ AF.ready(function () {
   }
   function paintToggle() {
     if (!toggle) { return; }
-    toggle.innerHTML = AF.icon(hidden ? 'eyeoff' : 'eye', 20);
+    toggle.innerHTML = AF.lotIcon(hidden ? 'eyeoff' : 'eye', 20);
+    AF.lottieFill(toggle.querySelector('[data-icon]'));
     toggle.setAttribute('aria-pressed', hidden ? 'true' : 'false');
     toggle.setAttribute('aria-label', hidden ? 'Show balance' : 'Hide balance');
     toggle.title = hidden ? 'Show balance' : 'Hide balance';

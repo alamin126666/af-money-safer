@@ -8,11 +8,12 @@
     var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', 'B'];
     keys.forEach(function (k) {
       var b = document.createElement('button'); b.type = 'button'; b.setAttribute('data-k', k);
-      if (k === 'B') { b.innerHTML = AF.icon('backspace', 24); b.setAttribute('aria-label', 'Backspace'); }
+      if (k === 'B') { b.innerHTML = AF.lotIcon('backspace', 24); b.setAttribute('aria-label', 'Backspace'); }
       else if (k === 'C') { b.className = 'fn'; b.textContent = 'Clear'; b.setAttribute('aria-label', 'Clear'); }
       else { b.textContent = AF.lang() === 'bn' ? new Intl.NumberFormat('bn-BD', { useGrouping: false }).format(+k) : k; b.setAttribute('aria-label', k); }
       pad.appendChild(b);
     });
+    AF.apply(pad);
     function render() {
       var s = boxes.children;
       for (var i = 0; i < len; i++) {

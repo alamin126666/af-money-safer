@@ -123,11 +123,11 @@
           + '<button data-v="deposit">' + AF.esc(AF.t('t_deposit')) + '</button>'
           + '<button data-v="withdraw">' + AF.esc(AF.t('t_withdraw')) + '</button>'
           + '</div>'
-          + '<button class="link-btn" id="hFilterBtn" type="button">' + AF.icon('filter', 15) + ' ' + AF.esc(AF.t('filters')) + '</button>'
+          + '<button class="link-btn" id="hFilterBtn" type="button">' + AF.lotIcon('filter', 15) + ' ' + AF.esc(AF.t('filters')) + '</button>'
           + '<form class="filters" id="hFilters" hidden style="margin-top:10px">'
           /* custom date range trigger */
           + '<button class="btn btn-ghost btn-sm" id="hDateBtn" type="button" style="grid-column:span 2;text-align:left;gap:8px">'
-          + AF.icon('calendar', 16) + ' <span id="hDateLabel">' + AF.esc(AF.lang()==='bn'?'তারিখ বাছুন':'Select dates') + '</span></button>'
+          + AF.lotIcon('calendar', 16) + ' <span id="hDateLabel">' + AF.esc(AF.lang()==='bn'?'তারিখ বাছুন':'Select dates') + '</span></button>'
           + sel('method', [['bKash', 'm_bKash'], ['Nagad', 'm_Nagad']])
           + sel('status', [['pending', 's_pending'], ['processing', 's_processing'], ['successful', 's_successful'], ['failed', 's_failed'], ['cancelled', 's_cancelled']])
           + '<button class="btn btn-primary" type="submit">' + AF.esc(AF.t('apply')) + '</button>'
@@ -136,6 +136,7 @@
           + '<div id="hList" style="margin-top:8px"></div>'
           + '<div class="empty" id="hEmpty" hidden>' + AF.esc(AF.t('no_data')) + '</div>'
           + '<div id="hLoading" class="h-loading" hidden><span class="spin"></span></div>';
+        AF.apply(root);
       }
 
       function updateDateLabel() {
@@ -153,7 +154,7 @@
         var el = document.createElement('div'); el.className = 'tx'; el.setAttribute('data-id', t.id);
         var sign = t.type === 'deposit' ? '+' : '−';
         el.innerHTML =
-          '<div class="tx-ic ' + t.type + '">' + AF.icon(t.type) + '</div>'
+          '<div class="tx-ic ' + t.type + '">' + AF.lotIcon(t.type) + '</div>'
           + '<div class="tx-main"><b>' + AF.esc(AF.t('t_' + t.type)) + ' · ' + AF.esc(t.method) + '</b>'
           + '<small>' + AF.esc(AF.date(t.createdAtMs)) + ' · ' + AF.esc(AF.time(t.createdAtMs)) + '</small></div>'
           + '<div class="tx-amt">' + sign + '৳' + AF.esc(AF.money(t.amount))
@@ -175,7 +176,7 @@
         var canDelete = deletable.indexOf(t.status) !== -1;
         var deleteBtn = canDelete
           ? '<button class="btn btn-danger btn-block" id="hDelBtn" type="button" style="margin-top:14px">'
-            + AF.icon('trash', 16) + ' ' + AF.esc(AF.lang()==='bn'?'ইতিহাস থেকে মুছুন':'Remove from history')
+            + AF.lotIcon('trash', 16) + ' ' + AF.esc(AF.lang()==='bn'?'ইতিহাস থেকে মুছুন':'Remove from history')
             + '</button>'
           : '';
 
@@ -184,7 +185,7 @@
           html: rows.map(function (r) {
             return '<div class="kv"><span class="muted">' + AF.esc(AF.t(r[0])) + '</span>'
               + '<b style="word-break:break-all;text-align:right">' + AF.esc(r[1])
-              + (r[2] ? ' <button type="button" class="link-btn" data-c="' + AF.esc(r[1]) + '" aria-label="Copy">' + AF.icon('copy', 16) + '</button>' : '')
+              + (r[2] ? ' <button type="button" class="link-btn" data-c="' + AF.esc(r[1]) + '" aria-label="Copy">' + AF.lotIcon('copy', 16) + '</button>' : '')
               + '</b></div>';
           }).join('') + deleteBtn
         });
@@ -223,6 +224,7 @@
           var list = $('#hList', root);
           var before = list.children.length;
           j.data.items.forEach(function (t) { list.appendChild(row(t)); });
+          AF.apply(list);
           var added = list.children.length - before;
           pages++;
           cursor = j.data.next;

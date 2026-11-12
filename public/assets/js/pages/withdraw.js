@@ -110,11 +110,12 @@ AF.ready(function () {
     function draw(t) {
       var ok = t.status === 'successful', bad = t.status === 'failed' || t.status === 'cancelled';
       card.innerHTML = '<div class="status-big"><div class="ring' + (ok ? ' ring-anim' : '') + '" style="' + (ok ? 'color:var(--ok)' : bad ? 'color:var(--danger)' : 'color:var(--warn)') + '">'
-        + (ok ? AF.animCheck(64) : AF.icon(bad ? 'x' : 'withdraw', 34)) + '</div><h3>'
+        + (ok ? AF.animCheck(64) : AF.lotIcon(bad ? 'x' : 'withdraw', 34)) + '</div><h3>'
         + AF.esc(AF.t(ok ? 'wd_ok' : bad ? 'wd_failed' : 'wd_wait')) + '</h3>'
         + '<p><b>৳' + AF.esc(AF.money(t.amount)) + '</b> · ' + AF.esc(t.method) + ' · ' + AF.esc(t.walletNo || '') + '</p>'
         + '<span class="pill ' + AF.esc(t.status) + '">' + AF.esc(AF.t('s_' + t.status)) + '</span>'
         + '<p style="margin-top:14px"><a class="btn btn-primary" href="/dashboard.php">' + AF.esc(AF.t('nav_home')) + '</a></p></div>';
+      AF.apply(card);
     }
     (function poll() {
       AF.api('withdraw/status.php', { txId: id }, { quiet: true }).then(function (j) {

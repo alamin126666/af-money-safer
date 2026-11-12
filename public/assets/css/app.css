@@ -810,8 +810,9 @@ img{max-width:100%}
 .page-maintenance .wrap{display:flex;flex-direction:column;justify-content:safe center;min-height:100vh;min-height:100dvh}
 
 /* ---- Animated icons pilot (Telegram-style, CSS/SVG only — no library, no extra weight) ---- */
-/* Lottie icons: the player svg fills its box; nav pop applies to the Lottie box too. */
-.lot{display:inline-flex;flex:none}
+/* Lottie icons: the player svg fills its box; nav pop applies to the Lottie box too.
+   vertical-align matches the old .ic svg so icons stay centred with text. */
+.lot{display:inline-flex;flex:none;vertical-align:middle}
 .lot svg{width:100%!important;height:100%!important;display:block}
 /* Bottom nav + sidebar: the active tab's icon pops in on landing; taps bounce. */
 .bottom-nav a.active .ic,.side-nav a.active .ic,.bottom-nav a.active .lot,.side-nav a.active .lot{animation:navPop .45s cubic-bezier(.34,1.56,.64,1) both}

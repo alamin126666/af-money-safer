@@ -9,9 +9,10 @@ AF.ready(function () {
     if (!items.length) { box.innerHTML = '<div class="empty">' + AF.esc(AF.t('no_notifications')) + '</div>'; return; }
     items.forEach(function (n) {
       var el = document.createElement('div'); el.className = 'tx'; el.style.cursor = 'default';
-      el.innerHTML = '<div class="tx-ic ' + (/withdraw/.test(n.key) ? 'withdraw' : 'deposit') + '">' + AF.icon('bell') + '</div><div class="tx-main"><b' + (n.read ? ' class="muted" style="font-weight:500"' : '') + '></b><small>' + AF.esc(AF.date(n.createdAtMs)) + ' · ' + AF.esc(AF.time(n.createdAtMs)) + '</small></div>';
+      el.innerHTML = '<div class="tx-ic ' + (/withdraw/.test(n.key) ? 'withdraw' : 'deposit') + '">' + AF.lotIcon('bell') + '</div><div class="tx-main"><b' + (n.read ? ' class="muted" style="font-weight:500"' : '') + '></b><small>' + AF.esc(AF.date(n.createdAtMs)) + ' · ' + AF.esc(AF.time(n.createdAtMs)) + '</small></div>';
       el.querySelector('b').textContent = text(n); box.appendChild(el);
     });
+    AF.apply(box);
   }
   /* Seen = read: opening the page clears the unread count to 0 everywhere
      (top-bar badge included), and the server count is re-synced afterwards. */

@@ -57,6 +57,10 @@
     zap: '<path d="M13 2.5 4.5 14H11l-1 7.5L18.5 10H12z"/>'
   };
   AF.icon = function (n, s) { s = s || 20; return '<svg class="ic" width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (P[n] || '') + '</svg>'; };
+  /* A [data-icon] placeholder for JS-built HTML — AF.apply / AF.lottieFill turns it
+     into the looping Lottie icon. The static svg inside is the fallback, so the
+     icon still shows even if AF.apply never runs on that container. */
+  AF.lotIcon = function (n, s) { return '<span data-icon="' + n + '" data-size="' + (s || 20) + '">' + AF.icon(n, s) + '</span>'; };
   /* Animated success check (Telegram-style): circle + tick draw themselves in. Uses currentColor. */
   AF.animCheck = function (s) { s = s || 52; return '<svg class="anim-check" width="' + s + '" height="' + s + '" viewBox="0 0 52 52" fill="none" aria-hidden="true"><circle cx="26" cy="26" r="24"/><path d="M14.5 27l7.5 7.5L38 18.5"/></svg>'; };
 
@@ -194,7 +198,7 @@
     var box = $('#toasts'); if (!box || !msg) { return; }
     var el = document.createElement('div'); el.className = 'toast ' + (type || 'info'); el.setAttribute('role', 'status');
     var ic = type === 'success' ? 'check' : type === 'error' ? 'alert' : 'info';
-    el.innerHTML = AF.icon(ic, 20); var sp = document.createElement('span'); sp.textContent = msg; el.appendChild(sp);
+    el.innerHTML = AF.lotIcon(ic, 20); AF.lottieFill(el.querySelector('[data-icon]')); var sp = document.createElement('span'); sp.textContent = msg; el.appendChild(sp);
     box.appendChild(el);
     var close = function () { el.classList.add('out'); setTimeout(function () { el.remove(); }, 260); };
     el.addEventListener('click', close); setTimeout(close, ms || 4500);
@@ -209,8 +213,9 @@
     if (force) { boot = null; }
     if (boot) { return boot; }
     boot = fetch('/api/auth/csrf.php?lang=' + lang, { credentials: 'same-origin' }).then(function (r) { return r.json(); }).then(function (j) {
-      if (j.success) { csrf = j.data.csrfToken; return j.data; } throw new Error('boot');
-    }).catch(function () { boot = null; return { turnstileSiteKey: '', authenticated: false, otp: { length: 6, resendIn: 60 } }; });
+      if (j.success) { csrf = j.data.csrfToken; return j.data; }
+      throw new Error(j.code || 'boot');
+    }).catch(function (e) { boot = null; return { turnstileSiteKey: '', authenticated: false, code: (e && e.message) || '', otp: { length: 6, resendIn: 60 } }; });
     return boot;
   };
   function request(path, body, method, retry) {
@@ -233,9 +238,13 @@
     return request(path, body, method, false).catch(function () { return { success: false, code: 'NETWORK', message: AF.t('network_error'), data: {} }; })
       .then(function (j) {
         if (!j.success) {
-          if (j.code === 'UNAUTHENTICATED' && !/^auth\//.test(path)) { location.replace('/login.php'); }
-          if (j.code === 'MAINTENANCE' && location.hash.indexOf('#/admin') !== 0 && !/maintenance\.php$/.test(location.pathname)) { location.replace('/maintenance.php'); }
-          if (!opts.quiet) { AF.toast(j.message, 'error'); }
+          if (j.code === 'ACCOUNT_DISABLED' && AF.accountDisabled()) {
+            /* dialogue shown instead of the toast — the session is already dead */
+          } else {
+            if (j.code === 'UNAUTHENTICATED' && !/^auth\//.test(path)) { location.replace('/login.php'); }
+            if (j.code === 'MAINTENANCE' && location.hash.indexOf('#/admin') !== 0 && !/maintenance\.php$/.test(location.pathname)) { location.replace('/maintenance.php'); }
+            if (!opts.quiet) { AF.toast(j.message, 'error'); }
+          }
         } else if (opts.ok) { AF.toast(j.message, 'success'); }
         j.data = j.data || {}; return j;
       });
@@ -269,7 +278,7 @@
   /* ---------- modal ---------- */
   AF.modal = function (o) {
     var back = document.createElement('div'); back.className = 'modal-back';
-    back.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="modal-head"><h3></h3><button class="icon-btn" type="button" aria-label="Close" data-x>' + AF.icon('x') + '</button></div><div class="modal-body"></div></div>';
+    back.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="modal-head"><h3></h3><button class="icon-btn" type="button" aria-label="Close" data-x>' + AF.lotIcon('x') + '</button></div><div class="modal-body"></div></div>';
     $('h3', back).textContent = o.title || '';
     var body = $('.modal-body', back); if (o.html != null) { body.innerHTML = o.html; } if (o.node) { body.appendChild(o.node); }
     var api = { el: back, body: body, close: function () { back.remove(); document.removeEventListener('keydown', esc); if (o.onClose) { o.onClose(); } } };
@@ -286,6 +295,27 @@
     api.close = function () { document.body.style.overflow = prevOverflow; origClose(); };
     back.addEventListener('click', function (e) { if (e.target === back) { document.body.style.overflow = prevOverflow; } });
     return api;
+  };
+
+  /* ---------- account disabled dialogue ---------- */
+  var accountDisabledShown = false;
+  /* Tells a signed-in user their account was disabled (e.g. by an admin while
+     they were already on the dashboard). Returns true when the dialogue was
+     shown, false on auth pages (the page's own error display handles it there).
+     Any way the dialogue closes, the dead session goes back to the login page. */
+  AF.accountDisabled = function () {
+    if (accountDisabledShown) { return true; }
+    if (/^\/(login|register|verify|forgot-password|reset)\.php$/.test(location.pathname) || /maintenance\.php$/.test(location.pathname)
+      || location.hash.indexOf('#/admin/login') === 0 || location.hash.indexOf('#/admin/setup') === 0) { return false; }
+    accountDisabledShown = true;
+    var m = AF.modal({
+      title: AF.t('account_disabled_title'),
+      html: '<p>' + AF.esc(AF.t('account_disabled_msg')) + '</p><p style="margin-top:14px"><button class="btn btn-primary btn-block" type="button" data-go-login>' + AF.esc(AF.t('go_to_login')) + '</button></p>',
+      onClose: function () { AF.go('/login.php'); }
+    });
+    var b = m.el.querySelector('[data-go-login]');
+    if (b) { b.addEventListener('click', function () { m.close(); }); }
+    return true;
   };
 
   /* ---------- formatting ---------- */
@@ -364,6 +394,7 @@
        are already browsing. Admins and #/admin routes are never redirected. */
     (function () {
       function check(b) {
+        if (b && b.code === 'ACCOUNT_DISABLED') { AF.accountDisabled(); return; }
         if (b && b.maintenance && b.maintenance.on && !b.isAdmin && location.hash.indexOf('#/admin') !== 0 && !/maintenance\.php$/.test(location.pathname)) {
           location.replace('/maintenance.php');
         }

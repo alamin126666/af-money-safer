@@ -16,13 +16,13 @@ AF.ready(function () {
     }
     $('#sf').innerHTML = '<section class="card"><h3 style="margin-top:0">Limits</h3>' + f('minDeposit', 'Minimum deposit (BDT)') + f('maxDeposit', 'Maximum deposit (BDT)') + f('minWithdraw', 'Minimum withdraw (BDT, at least 100)') + f('maxWithdraw', 'Maximum withdraw (BDT)') +
       '<h3>Fees</h3>' + f('depositFeePercent', 'Deposit fee (%)') + f('withdrawFeePercent', 'Withdraw fee (%)') + '<div class="summary" id="feePrev"></div></section>' +
-      '<section class="card maint-card"><div class="maint-head"><span class="maint-ic">' + AF.icon('settings', 22) + '</span><div class="maint-title"><h3>Maintenance mode</h3><p class="muted">When on, users are sent to a maintenance page with the reason and a countdown. Admins are not affected.</p></div>' +
+      '<section class="card maint-card"><div class="maint-head"><span class="maint-ic">' + AF.lotIcon('settings', 22) + '</span><div class="maint-title"><h3>Maintenance mode</h3><p class="muted">When on, users are sent to a maintenance page with the reason and a countdown. Admins are not affected.</p></div>' +
       '<label class="m-toggle" aria-label="Maintenance mode"><input type="checkbox" name="maintenance" ' + (s.maintenance ? 'checked' : '') + '><span class="m-track"><span class="m-knob"></span></span></label></div>' +
       '<div class="maint-live" id="maintLive" hidden></div>' +
       '<div class="maint-fields" id="maintFields"><label class="field"><span>Reason (shown to users)</span><div class="input"><input name="maintenanceReason" value="' + E(s.maintenanceReason || '') + '" maxlength="200" placeholder="e.g. Server upgrade in progress"></div></label>' +
-      '<label class="field"><span>How long</span><div class="input select-modern"><select name="maintenanceMinutes">' + mins() + '</select><span class="select-chev">' + AF.icon('chevron', 18) + '</span></div></label></div></section>' +
+      '<label class="field"><span>How long</span><div class="input select-modern"><select name="maintenanceMinutes">' + mins() + '</select><span class="select-chev">' + AF.lotIcon('chevron', 18) + '</span></div></label></div></section>' +
       '<button class="btn btn-primary btn-block">Save settings</button>';
-    var sf = $('#sf');
+    var sf = $('#sf'); AF.apply(sf);
     (function preview() {
       var el = document.getElementById('feePrev'); if (!el) { return; }
       el.innerHTML = feeHtml(parseFloat(sf.depositFeePercent.value) || 0, parseFloat(sf.withdrawFeePercent.value) || 0);

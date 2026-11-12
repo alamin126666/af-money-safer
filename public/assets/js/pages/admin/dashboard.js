@@ -12,8 +12,9 @@ AF.ready(function () {
       ['alert', 't-red', 'Needs review', d.needsReview, d.needsReview ? 'check transactions' : 'all clear'],
     ];
     $('#stats').innerHTML = cards.map(function (c) {
-      return '<section class="card stat-card"><span class="stat-ic ' + c[1] + '">' + AF.icon(c[0], 22) + '</span><div><span class="label">' + E(c[2]) + '</span><b>' + E(c[3]) + '</b><small>' + E(c[4]) + '</small></div></section>';
+      return '<section class="card stat-card"><span class="stat-ic ' + c[1] + '">' + AF.lotIcon(c[0], 22) + '</span><div><span class="label">' + E(c[2]) + '</span><b>' + E(c[3]) + '</b><small>' + E(c[4]) + '</small></div></section>';
     }).join('');
+    AF.apply($('#stats'));
     $('#sys').innerHTML = '<div class="kv"><span class="muted">Maintenance mode</span><b>' + (d.maintenance ? 'ON' : 'off') + '</b></div>'
       + '<div class="kv"><span class="muted">TashPay merchant balance</span><b>' + (d.merchantBalance == null ? 'n/a' : E(d.merchantBalance)) + '</b></div>';
   });
@@ -29,8 +30,9 @@ AF.ready(function () {
     var items = j.data.items.slice(0, 10);
     if (!items.length) { $('#recent').innerHTML = '<div class="empty">No transactions yet.</div>'; return; }
     $('#recent').innerHTML = '<div class="scroll-x"><table class="tbl"><tr><th>Date</th><th>Type</th><th>Amount</th><th>Fee</th><th>Status</th><th></th></tr>' + items.map(function (t) {
-      return '<tr><td>' + E(dt(t.createdAtMs)) + '</td><td>' + E(t.type + ' · ' + t.method) + '</td><td>' + E(tk(t.amount)) + '</td><td>' + E(tk(t.fee)) + '</td><td>' + st(t.status) + (t.needsReview ? ' ' + AF.icon('alert', 14) : '') + '</td><td><button class="link-btn" data-t="' + E(t.id) + '">Open</button></td></tr>';
+      return '<tr><td>' + E(dt(t.createdAtMs)) + '</td><td>' + E(t.type + ' · ' + t.method) + '</td><td>' + E(tk(t.amount)) + '</td><td>' + E(tk(t.fee)) + '</td><td>' + st(t.status) + (t.needsReview ? ' ' + AF.lotIcon('alert', 14) : '') + '</td><td><button class="link-btn" data-t="' + E(t.id) + '">Open</button></td></tr>';
     }).join('') + '</table></div>';
+    AF.apply($('#recent'));
     $('#recent').addEventListener('click', function (e) { var b = e.target.closest('[data-t]'); if (b) { A.txModal(b.getAttribute('data-t')); } });
   });
 });
