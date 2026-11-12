@@ -20,6 +20,9 @@ final class ReconcileService
     /** Check one transaction (array from WalletService::tx). */
     public static function check(array $tx): void
     {
+        // Withdraws held for admin approval never reached TashPay: the cron
+        // must not try to resolve them, or it would refund the hold early.
+        if (!empty($tx['needsApproval'])) { return; }
         try {
             WalletService::touchQuery($tx['id']);
             $tx['type'] === 'deposit' ? self::checkDeposit($tx) : self::checkWithdraw($tx);

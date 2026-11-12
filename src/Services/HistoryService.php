@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Firebase;
+use App\Core\Time;
 
 final class HistoryService
 {
@@ -55,5 +56,36 @@ final class HistoryService
         }
         $nextCursor = $more && $items ? $items[count($items) - 1]['createdAtMs'] : null;
         return ['items' => $items, 'next' => $nextCursor];
+    }
+
+    /**
+     * Last 14 days of the user's successful deposits/withdraws, aggregated
+     * per day in Bangladesh time. Same single-index query as page() (userId
+     * + createdAtMs), aggregated in PHP — no new index.
+     * @return array{days:array}
+     */
+    public static function chart(string $uid): array
+    {
+        $now = Time::ms();
+        $start = $now - 14 * 86400000;
+        $dayMs = 86400000;
+        $firstDay = (int)floor(($start + 21600000) / $dayMs);
+        $lastDay = (int)floor(($now + 21600000) / $dayMs);
+        $days = [];
+        for ($d = $firstDay; $d <= $lastDay; $d++) {
+            $key = gmdate('Y-m-d', $d * 86400);   // BD date of day $d (d counts days in BD time)
+            $days[$key] = ['date' => $key, 'deposit' => 0, 'withdraw' => 0];
+        }
+        foreach (Firebase::db()->collection('transactions')->where('userId', '=', $uid)->orderBy('createdAtMs', 'DESC')->limit(500)->documents() as $doc) {
+            $x = $doc->data();
+            $ms = (int)($x['createdAtMs'] ?? 0);
+            if ($ms < $start) { break; }   // DESC order: everything after this is older
+            if (($x['status'] ?? '') !== 'successful') { continue; }
+            $key = gmdate('Y-m-d', (int)($ms / 1000) + 21600);
+            if (!isset($days[$key])) { continue; }
+            if (($x['type'] ?? '') === 'deposit') { $days[$key]['deposit'] += (int)($x['creditedAmount'] ?? $x['amount']); }
+            elseif (($x['type'] ?? '') === 'withdraw') { $days[$key]['withdraw'] += (int)$x['amount']; }
+        }
+        return ['OK', ['days' => array_values($days)]];
     }
 }

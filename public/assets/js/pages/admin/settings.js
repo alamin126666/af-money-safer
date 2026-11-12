@@ -21,6 +21,8 @@ AF.ready(function () {
       '<div class="maint-live" id="maintLive" hidden></div>' +
       '<div class="maint-fields" id="maintFields"><label class="field"><span>Reason (shown to users)</span><div class="input"><input name="maintenanceReason" value="' + E(s.maintenanceReason || '') + '" maxlength="200" placeholder="e.g. Server upgrade in progress"></div></label>' +
       '<label class="field"><span>How long</span><div class="input select-modern"><select name="maintenanceMinutes">' + mins() + '</select><span class="select-chev">' + AF.lotIcon('chevron', 18) + '</span></div></label></div></section>' +
+      '<section class="card"><div class="maint-head"><span class="maint-ic">' + AF.lotIcon('shield-check', 22) + '</span><div class="maint-title"><h3>Withdraw approval</h3><p class="muted">When on, every withdraw waits for an admin to approve or reject it (Transactions view). When off, withdraws go to TashPay automatically as before.</p></div>' +
+      '<label class="m-toggle" aria-label="Withdraw approval"><input type="checkbox" name="withdrawApproval" ' + (s.withdrawApproval ? 'checked' : '') + '><span class="m-track"><span class="m-knob"></span></span></label></div></section>' +
       '<button class="btn btn-primary btn-block">Save settings</button>';
     var sf = $('#sf'); AF.apply(sf);
     (function preview() {
@@ -46,6 +48,6 @@ AF.ready(function () {
       }
       tick(); setInterval(tick, 1000);
     })();
-    sf.addEventListener('submit', function (e) { e.preventDefault(); var d = AF.form(e.target); d.maintenance = e.target.maintenance.checked; AF.api('admin/settings-update.php', d, { ok: true }); });
+    sf.addEventListener('submit', function (e) { e.preventDefault(); var d = AF.form(e.target); d.maintenance = e.target.maintenance.checked; d.withdrawApproval = e.target.withdrawApproval.checked; AF.api('admin/settings-update.php', d, { ok: true }); });
   });
 });

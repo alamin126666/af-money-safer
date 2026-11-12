@@ -20,10 +20,12 @@
       </div></div>
     <label class="field"><span data-i18n="amount"></span>
       <div class="input big"><span class="cur">৳</span><input type="text" name="amount" inputmode="numeric" autocomplete="off" placeholder="0" maxlength="9" required></div></label>
+    <div class="field" id="savedWrap" hidden><span data-i18n="saved_numbers"></span><div id="savedList"></div></div>
     <label class="field"><span data-i18n="wallet_number"></span>
       <div class="input"><span data-icon="wallet"></span><input type="tel" name="walletNo" inputmode="numeric" autocomplete="off" placeholder="01XXXXXXXXX" maxlength="14" required></div></label>
     <label class="field"><span data-i18n="holder_name"></span>
       <div class="input"><span data-icon="user"></span><input type="text" name="holderName" autocomplete="off" maxlength="60" required></div></label>
+    <button class="btn btn-ghost btn-block" id="saveNumBtn" type="button" style="margin-top:10px"><span data-icon="plus"></span><span data-i18n="save_this_number"></span></button>
     <div class="summary" id="summary"></div>
     <p class="limits muted" id="limits"></p>
     <button class="btn btn-primary btn-block" id="submit" type="submit"><span data-i18n="withdraw_btn"></span></button>

@@ -37,6 +37,50 @@ AF.ready(function () {
   });
   document.addEventListener('af:lang', limits);
 
+  /* ── Saved withdraw numbers (unlimited, with name) ── */
+  var savedWrap = $('#savedWrap'), savedList = $('#savedList');
+  function maskNo(n) { return n ? n.slice(0, 3) + '****' + n.slice(-3) : ''; }
+  function loadSaved() {
+    if (!savedList) { return; }
+    AF.api('withdraw/saved-numbers.php', undefined, { quiet: true }).then(function (j) {
+      if (!j.success) { return; }
+      var items = j.data.items || [];
+      savedWrap.hidden = items.length === 0;
+      savedList.innerHTML = '';
+      items.forEach(function (it) {
+        var el = document.createElement('div'); el.className = 'saved-num';
+        el.innerHTML = '<div class="tx-ic">' + AF.lotIcon('wallet', 18) + '</div>'
+          + '<div class="tx-main"><b>' + AF.esc(it.name) + '</b><small>' + AF.esc(it.method) + ' · ' + AF.esc(maskNo(it.walletNo)) + '</small></div>'
+          + '<button class="icon-btn" type="button" data-del="' + AF.esc(it.id) + '" aria-label="Delete">' + AF.lotIcon('x', 16) + '</button>';
+        el.addEventListener('click', function (e) {
+          if (e.target.closest('[data-del]')) { return; }
+          var btn = document.querySelector('.method[data-m="' + it.method + '"]');
+          if (btn) { btn.click(); }
+          wno.value = it.walletNo;
+          var hn = f.querySelector('[name=holderName]'); if (hn) { hn.value = it.name; }
+          summary();
+        });
+        savedList.appendChild(el);
+      });
+      AF.apply(savedList);
+    });
+  }
+  if (savedList) {
+    savedList.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-del]'); if (!b) { return; }
+      AF.api('withdraw/saved-numbers.php', { id: b.getAttribute('data-del') }, { method: 'DELETE' }).then(function (j) { if (j.success) { loadSaved(); } });
+    });
+  }
+  var saveBtn = $('#saveNumBtn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', function () {
+      var d = AF.form(f);
+      if (!d.walletNo || !d.holderName) { AF.toast(AF.t('saved_num_fill_first'), 'error'); return; }
+      AF.api('withdraw/saved-numbers.php', { name: d.holderName, method: method, walletNo: d.walletNo }, { ok: true }).then(function (j) { if (j.success) { loadSaved(); } });
+    });
+  }
+  loadSaved();
+
   $('#methods').addEventListener('click', function (e) {
     var b = e.target.closest('.method'); if (!b) { return; }
     method = b.getAttribute('data-m');
@@ -62,15 +106,15 @@ AF.ready(function () {
     AF.busy(btn, true);
     AF.api('withdraw/request-otp.php', { method: method, amount: d.amount.trim(), walletNo: d.walletNo, holderName: d.holderName }).then(function (j) {
       AF.busy(btn, false);
-      if (j.success) { confirmStep(j.data); }
+      if (j.success) { confirmStep(j.data, j.code === 'WITHDRAW_TOTP_REQUIRED'); }
       else if (j.data && j.data.fields) { AF.toast(Object.keys(j.data.fields).map(function (k) { return j.data.fields[k]; }).join(' '), 'error'); }
     });
   });
 
-  function confirmStep(info) {
+  function confirmStep(info, isTotp) {
     var sentAt = Date.now() + (info.resendIn || 60) * 1000, pad, cd, busy = false;
-    var m = AF.modal({ title: AF.t('otp_title'), html:
-      '<p class="muted">' + AF.esc(AF.t('otp_desc', { email: info.email })) + '</p>'
+    var m = AF.modal({ title: AF.t(isTotp ? 'totp_title' : 'otp_title'), html:
+      '<p class="muted">' + AF.esc(AF.t(isTotp ? 'totp_desc' : 'otp_desc', { email: info.email })) + '</p>'
       + '<div class="summary">'
       + '<div class="row"><span class="muted">' + AF.esc(AF.t('you_receive')) + '</span><b>৳' + AF.esc(AF.money(info.amount)) + '</b></div>'
       + '<div class="row"><span class="muted">' + AF.esc(AF.t('fee_line')) + (L && L.withdrawFeePercent ? ' (' + L.withdrawFeePercent + '%)' : '') + '</span><b>৳' + AF.esc(AF.money(info.fee || 0)) + '</b></div>'
@@ -78,7 +122,7 @@ AF.ready(function () {
       + '</div>'
       + '<div class="otp-boxes" id="mb"></div><div class="numpad" id="mp"></div>'
       + '<button class="btn btn-primary btn-block" id="mc" type="button">' + AF.esc(AF.t('confirm_withdraw')) + '</button>'
-      + '<div class="resend"><button class="link-btn" id="mr" type="button" disabled></button></div>',
+      + (isTotp ? '' : '<div class="resend"><button class="link-btn" id="mr" type="button" disabled></button></div>'),
       onClose: function () { if (pad) { pad.destroy(); } }
     });
     function go(code) {
@@ -94,26 +138,31 @@ AF.ready(function () {
     }
     pad = AF.otpPad({ boxes: $('#mb', m.el), pad: $('#mp', m.el), length: 6, onComplete: go });
     $('#mc', m.el).addEventListener('click', function () { go(pad.get()); });
-    cd = AF.countdown($('#mr', m.el), function () { return sentAt; });
-    $('#mr', m.el).addEventListener('click', function () {
-      var d2 = AF.form(f);
-      AF.api('withdraw/request-otp.php', { method: method, amount: d2.amount.trim(), walletNo: d2.walletNo, holderName: d2.holderName }).then(function (j) {
-        if (j.success) { sentAt = Date.now() + (j.data.resendIn || 60) * 1000; AF.toast(j.message, 'success'); pad.clear(); }
-        else if (j.data && j.data.retryAfter) { sentAt = Date.now() + j.data.retryAfter * 1000; }
-        cd.restart();
+    if (!isTotp) {
+      cd = AF.countdown($('#mr', m.el), function () { return sentAt; });
+      $('#mr', m.el).addEventListener('click', function () {
+        var d2 = AF.form(f);
+        AF.api('withdraw/request-otp.php', { method: method, amount: d2.amount.trim(), walletNo: d2.walletNo, holderName: d2.holderName }).then(function (j) {
+          if (j.success) { sentAt = Date.now() + (j.data.resendIn || 60) * 1000; AF.toast(j.message, 'success'); pad.clear(); }
+          else if (j.data && j.data.retryAfter) { sentAt = Date.now() + j.data.retryAfter * 1000; }
+          cd.restart();
+        });
       });
-    });
+    }
   }
 
   function watch(id) {
     var card = $('#statusCard'), tries = 0; card.hidden = false;
     function draw(t) {
       var ok = t.status === 'successful', bad = t.status === 'failed' || t.status === 'cancelled';
+      var awaiting = !!t.needsApproval;
       card.innerHTML = '<div class="status-big"><div class="ring' + (ok ? ' ring-anim' : '') + '" style="' + (ok ? 'color:var(--ok)' : bad ? 'color:var(--danger)' : 'color:var(--warn)') + '">'
         + (ok ? AF.animCheck(64) : AF.lotIcon(bad ? 'x' : 'withdraw', 34)) + '</div><h3>'
-        + AF.esc(AF.t(ok ? 'wd_ok' : bad ? 'wd_failed' : 'wd_wait')) + '</h3>'
+        + AF.esc(AF.t(ok ? 'wd_ok' : bad ? 'wd_failed' : awaiting ? 'wd_awaiting' : 'wd_wait')) + '</h3>'
+        + (awaiting ? '<p class="muted">' + AF.esc(AF.t('wd_awaiting_hint')) + '</p>' : '')
         + '<p><b>৳' + AF.esc(AF.money(t.amount)) + '</b> · ' + AF.esc(t.method) + ' · ' + AF.esc(t.walletNo || '') + '</p>'
         + '<span class="pill ' + AF.esc(t.status) + '">' + AF.esc(AF.t('s_' + t.status)) + '</span>'
+        + (ok ? '<p style="margin-top:10px"><a class="btn btn-ghost btn-block" href="/receipt.php?tx=' + AF.esc(t.id) + '" target="_blank" rel="noopener">' + AF.esc(AF.t('receipt')) + '</a></p>' : '')
         + '<p style="margin-top:14px"><a class="btn btn-primary" href="/dashboard.php">' + AF.esc(AF.t('nav_home')) + '</a></p></div>';
       AF.apply(card);
     }

@@ -10,7 +10,16 @@ AF.ready(function () {
     items.forEach(function (n) {
       var el = document.createElement('div'); el.className = 'tx'; el.style.cursor = 'default';
       el.innerHTML = '<div class="tx-ic ' + (/withdraw/.test(n.key) ? 'withdraw' : 'deposit') + '">' + AF.lotIcon('bell') + '</div><div class="tx-main"><b' + (n.read ? ' class="muted" style="font-weight:500"' : '') + '></b><small>' + AF.esc(AF.date(n.createdAtMs)) + ' · ' + AF.esc(AF.time(n.createdAtMs)) + '</small></div>';
-      el.querySelector('b').textContent = text(n); box.appendChild(el);
+      if (n.key === 'n.broadcast') {
+        /* Broadcast: the title is the bold line, the message is the body (text only, never raw HTML). */
+        el.querySelector('b').textContent = (n.params && n.params.title) || AF.t('broadcast');
+        var msg = document.createElement('span'); msg.className = 'bc-msg';
+        msg.textContent = (n.params && n.params.message) || '';
+        el.querySelector('.tx-main').insertBefore(msg, el.querySelector('small'));
+      } else {
+        el.querySelector('b').textContent = text(n);
+      }
+      box.appendChild(el);
     });
     AF.apply(box);
   }

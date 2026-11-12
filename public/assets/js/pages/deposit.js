@@ -144,6 +144,7 @@ AF.ready(function () {
         + (t.fee > 0 ? '<div class="summary" style="text-align:left"><div class="row"><span class="muted">' + AF.esc(AF.t('fee_line')) + '</span><b>৳' + AF.esc(AF.money(t.fee)) + '</b></div>'
         + '<div class="row"><span class="muted">' + AF.esc(AF.t('you_receive')) + '</span><b>৳' + AF.esc(AF.money(t.credited ? t.credited : t.amount - t.fee)) + '</b></div></div>' : '')
         + '<p><a class="btn btn-primary" href="/dashboard.php">' + AF.esc(AF.t('nav_home')) + '</a></p>'
+        + (ok ? '<p style="margin-top:10px"><a class="btn btn-ghost btn-block" href="/receipt.php?tx=' + AF.esc(t.id) + '" target="_blank" rel="noopener">' + AF.esc(AF.t('receipt')) + '</a></p>' : '')
         + (ok ? '<p style="margin-top:10px"><button class="btn btn-ghost btn-block" type="button" data-new>' + AF.esc(AF.t('new_deposit')) + '</button></p>'
           : bad ? '<p style="margin-top:10px"><button class="btn btn-ghost btn-block" type="button" data-retry>' + AF.esc(AF.t('try_again')) + '</button></p>' : '')
         + '</div>';

@@ -6,7 +6,9 @@ namespace App\Services;
 use App\Core\ApiException;
 use App\Core\Firebase;
 use App\Core\Money;
+use App\Core\RateLimit;
 use App\Core\Settings;
+use App\Core\Time;
 use App\Core\Validator;
 
 final class AdminService
@@ -38,6 +40,8 @@ final class AdminService
         }
         $review = 0;
         foreach (self::db()->collection('transactions')->where('needsReview', '=', true)->limit(50)->documents() as $_) { $review++; }
+        $awaiting = 0;
+        foreach (self::db()->collection('transactions')->where('needsApproval', '=', true)->limit(100)->documents() as $_) { $awaiting++; }
         $totalDep = 0; $totalWd = 0;
         foreach (self::db()->collection('wallets')->select(['totalDeposit', 'totalWithdraw'])->limit(5000)->documents() as $d) {
             $w = $d->data(); $totalDep += (int)($w['totalDeposit'] ?? 0); $totalWd += (int)($w['totalWithdraw'] ?? 0);
@@ -45,7 +49,8 @@ final class AdminService
         $merchant = null;
         try { $r = TashPay::post('/merchant/balance', []); $merchant = $r['code'] === 0 ? ($r['data']['balance'] ?? null) : null; } catch (\Throwable) {}
         return ['OK', ['users' => $users, 'disabledUsers' => $disabled, 'pendingDeposits' => $pend['deposit'],
-                       'pendingWithdraws' => $pend['withdraw'], 'needsReview' => $review, 'merchantBalance' => $merchant,
+                       'pendingWithdraws' => $pend['withdraw'], 'needsReview' => $review, 'awaitingApproval' => $awaiting,
+                       'merchantBalance' => $merchant,
                        'totalDeposited' => $totalDep, 'totalWithdrawn' => $totalWd,
                        'maintenance' => (bool)Settings::get('maintenance')]];
     }
@@ -108,6 +113,17 @@ final class AdminService
         }
         $st = self::s($in, 'status', 12); $ty = self::s($in, 'type', 10);
         $q = $col;
+        if ($st === 'awaiting') {
+            // Withdraws held for admin approval. Single-field query, sorted in PHP — no new index.
+            $rows = [];
+            foreach ($q->where('needsApproval', '=', true)->limit(60)->documents() as $d) {
+                $r = $d->data() + ['id' => $d->id()];
+                if (in_array($ty, ['deposit', 'withdraw'], true) && $r['type'] !== $ty) { continue; }
+                $rows[] = self::txRow($r);
+            }
+            usort($rows, static fn($a, $b) => $b['createdAtMs'] <=> $a['createdAtMs']);
+            return ['OK', ['items' => $rows]];
+        }
         if (in_array($st, ['pending', 'processing', 'successful', 'failed', 'cancelled'], true)) { $q = $q->where('status', '=', $st); }
         elseif (in_array($ty, ['deposit', 'withdraw'], true)) { $q = $q->where('type', '=', $ty); }
         $rows = [];
@@ -148,6 +164,7 @@ final class AdminService
             'maintenance' => $maintOn,
             'maintenanceReason' => $maintOn ? $maintReason : '',
             'maintenanceUntilMs' => $maintOn ? (time() * 1000 + $maintMinutes * 60000) : 0,
+            'withdrawApproval' => (bool)($in['withdrawApproval'] ?? false),
         ];
         if ($new['minDeposit'] > $new['maxDeposit'] || $new['minWithdraw'] > $new['maxWithdraw']) {
             throw new ApiException('VALIDATION_FAILED', 422, ['fields' => ['maxDeposit' => 'min > max']]);
@@ -158,9 +175,93 @@ final class AdminService
         return ['SETTINGS_SAVED', ['settings' => $new]];
     }
 
-    public static function auditLogs(): array
+    // ------------------------------------------------------------ broadcast
+    public static function sendBroadcast(array $admin, array $in): array
+    {
+        RateLimit::hit("broadcast:{$admin['uid']}", 1, 300);   // at most one broadcast per 5 minutes per admin
+        $title = self::s($in, 'title', 120);
+        $message = self::s($in, 'message', 500);
+        if ($title === '' || $message === '') { throw new ApiException('VALIDATION_FAILED', 422); }
+        $sent = Notifier::broadcast($title, $message);
+        self::db()->collection('broadcasts')->add([
+            'title' => $title, 'message' => $message, 'createdBy' => $admin['uid'],
+            'sentCount' => $sent, 'createdAtMs' => Time::ms(),
+        ]);
+        AuditLog::log($admin['uid'], 'admin.broadcast_sent', 'broadcasts', ['sent' => $sent, 'title' => $title]);
+        return ['BROADCAST_SENT', ['sent' => $sent]];
+    }
+
+    public static function broadcasts(): array
     {
         $rows = [];
+        foreach (self::db()->collection('broadcasts')->orderBy('createdAtMs', 'DESC')->limit(20)->documents() as $d) {
+            $x = $d->data();
+            $rows[] = ['title' => $x['title'] ?? '', 'message' => $x['message'] ?? '',
+                       'sentCount' => (int)($x['sentCount'] ?? 0), 'createdAtMs' => (int)($x['createdAtMs'] ?? 0)];
+        }
+        return ['OK', ['items' => $rows]];
+    }
+
+    // -------------------------------------------------------------- reports
+    /** ?days=7|30. One bounded scan (<=3000 txs); no new composite index. */
+    public static function reports(array $in): array
+    {
+        $days = (int)($in['days'] ?? 30);
+        if (!in_array($days, [7, 30], true)) { $days = 30; }
+        $start = Time::ms() - $days * 86400000;
+        $totals = ['deposits' => ['count' => 0, 'sum' => 0], 'withdraws' => ['count' => 0, 'sum' => 0], 'bonuses' => ['count' => 0, 'sum' => 0]];
+        $perDay = [];
+        $methods = ['deposit' => ['bKash' => ['count' => 0, 'sum' => 0], 'Nagad' => ['count' => 0, 'sum' => 0]],
+                    'withdraw' => ['bKash' => ['count' => 0, 'sum' => 0], 'Nagad' => ['count' => 0, 'sum' => 0]]];
+        $pendingWithdraws = 0;
+        foreach (self::db()->collection('transactions')->where('createdAtMs', '>=', $start)->orderBy('createdAtMs', 'DESC')->limit(3000)->documents() as $d) {
+            $x = $d->data();
+            $day = gmdate('Y-m-d', (int)((int)($x['createdAtMs'] ?? 0) / 1000) + 21600);   // Bangladesh time (UTC+6)
+            $perDay[$day] ??= ['deposit' => 0, 'withdraw' => 0];
+            $type = $x['type'] ?? '';
+            $status = $x['status'] ?? '';
+            if ($type === 'deposit' && $status === 'successful') {
+                $amt = (int)($x['creditedAmount'] ?? $x['amount']);
+                $totals['deposits']['count']++; $totals['deposits']['sum'] += $amt; $perDay[$day]['deposit'] += $amt;
+                $m = $x['method'] ?? '';
+                if (isset($methods['deposit'][$m])) { $methods['deposit'][$m]['count']++; $methods['deposit'][$m]['sum'] += $amt; }
+            } elseif ($type === 'withdraw') {
+                if ($status === 'successful') {
+                    $amt = (int)$x['amount'];
+                    $totals['withdraws']['count']++; $totals['withdraws']['sum'] += $amt; $perDay[$day]['withdraw'] += $amt;
+                    $m = $x['method'] ?? '';
+                    if (isset($methods['withdraw'][$m])) { $methods['withdraw'][$m]['count']++; $methods['withdraw'][$m]['sum'] += $amt; }
+                }
+                if ($status === 'pending') { $pendingWithdraws++; }
+            } elseif ($type === 'bonus' && $status === 'successful') {
+                $totals['bonuses']['count']++; $totals['bonuses']['sum'] += (int)$x['amount'];
+            }
+        }
+        // Fill every day in the range (even empty ones) so the chart has no gaps.
+        $series = [];
+        $dayMs = 86400000;
+        $firstDay = (int)floor(($start + 21600000) / $dayMs);
+        $lastDay = (int)floor((Time::ms() + 21600000) / $dayMs);
+        for ($d = $firstDay; $d <= $lastDay; $d++) {
+            $key = gmdate('Y-m-d', $d * 86400);   // BD date of day $d (d counts days in BD time)
+            $series[] = ['date' => $key, 'deposit' => (int)($perDay[$key]['deposit'] ?? 0), 'withdraw' => (int)($perDay[$key]['withdraw'] ?? 0)];
+        }
+        $newUsers = 0;
+        try {
+            $ts = new \Google\Cloud\Core\Timestamp(new \DateTime('@' . (int)($start / 1000)));
+            foreach (self::db()->collection('users')->where('createdAt', '>=', $ts)->limit(5000)->documents() as $_) { $newUsers++; }
+        } catch (\Throwable) { $newUsers = 0; }
+        $awaiting = 0;
+        foreach (self::db()->collection('transactions')->where('needsApproval', '=', true)->limit(100)->documents() as $_) { $awaiting++; }
+        $redemptions = 0;
+        foreach (self::db()->collection('promo_redemptions')->where('createdAtMs', '>=', $start)->limit(3000)->documents() as $_) { $redemptions++; }
+        return ['OK', ['days' => $days, 'totals' => $totals, 'series' => $series, 'methods' => $methods,
+                       'newUsers' => $newUsers, 'pendingWithdraws' => $pendingWithdraws,
+                       'awaitingApproval' => $awaiting, 'promoRedemptions' => $redemptions]];
+    }
+
+    public static function auditLogs(): array
+    {        $rows = [];
         foreach (self::db()->collection('audit_logs')->orderBy('createdAt', 'DESC')->limit(60)->documents() as $d) {
             $x = $d->data(); $c = $x['createdAt'] ?? null;
             $rows[] = ['actor' => $x['actor'], 'action' => $x['action'], 'target' => $x['target'], 'meta' => (object)($x['meta'] ?? []),

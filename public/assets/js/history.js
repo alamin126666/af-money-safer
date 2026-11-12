@@ -152,10 +152,10 @@
 
       function row(t) {
         var el = document.createElement('div'); el.className = 'tx'; el.setAttribute('data-id', t.id);
-        var sign = t.type === 'deposit' ? '+' : '−';
+        var sign = t.type === 'withdraw' ? '−' : '+';
         el.innerHTML =
-          '<div class="tx-ic ' + t.type + '">' + AF.lotIcon(t.type) + '</div>'
-          + '<div class="tx-main"><b>' + AF.esc(AF.t('t_' + t.type)) + ' · ' + AF.esc(t.method) + '</b>'
+          '<div class="tx-ic ' + t.type + '">' + AF.lotIcon(t.type === 'bonus' ? 'sparkle' : t.type) + '</div>'
+          + '<div class="tx-main"><b>' + AF.esc(AF.t('t_' + t.type)) + (t.method ? ' · ' + AF.esc(t.method) : '') + '</b>'
           + '<small>' + AF.esc(AF.date(t.createdAtMs)) + ' · ' + AF.esc(AF.time(t.createdAtMs)) + '</small></div>'
           + '<div class="tx-amt">' + sign + '৳' + AF.esc(AF.money(t.amount))
           + '<br><span class="pill ' + AF.esc(t.status) + '">' + AF.esc(AF.t('s_' + t.status)) + '</span></div>';
@@ -166,7 +166,11 @@
       var deletable = ['pending', 'cancelled', 'failed'];
 
       function detail(t) {
-        var rows = [['tx_id', t.id, 1], ['order_id', t.orderId, 1], ['type', AF.t('t_' + t.type)], ['method', t.method], ['amount', '৳' + AF.money(t.amount)]];
+        var rows = [['tx_id', t.id, 1]];
+        if (t.orderId) { rows.push(['order_id', t.orderId, 1]); }
+        rows.push(['type', AF.t('t_' + t.type)]);
+        if (t.method) { rows.push(['method', t.method]); }
+        rows.push(['amount', '৳' + AF.money(t.amount)]);
         if (t.fee) { rows.push(['fee', '৳' + AF.money(t.fee)]); }
         rows.push(['status', AF.t('s_' + t.status)], ['date', AF.date(t.createdAtMs)], ['time', AF.time(t.createdAtMs)]);
         if (t.walletNo)   { rows.push(['wallet',    t.walletNo]); }
@@ -179,6 +183,8 @@
             + AF.lotIcon('trash', 16) + ' ' + AF.esc(AF.lang()==='bn'?'ইতিহাস থেকে মুছুন':'Remove from history')
             + '</button>'
           : '';
+        var receiptBtn = '<a class="btn btn-ghost btn-block" href="/receipt.php?tx=' + AF.esc(t.id) + '" target="_blank" rel="noopener" style="margin-top:10px">'
+          + AF.lotIcon('receipt', 16) + ' ' + AF.esc(AF.t('receipt')) + '</a>';
 
         var m = AF.modal({
           title: AF.t('tx_details'),
@@ -187,7 +193,7 @@
               + '<b style="word-break:break-all;text-align:right">' + AF.esc(r[1])
               + (r[2] ? ' <button type="button" class="link-btn" data-c="' + AF.esc(r[1]) + '" aria-label="Copy">' + AF.lotIcon('copy', 16) + '</button>' : '')
               + '</b></div>';
-          }).join('') + deleteBtn
+          }).join('') + deleteBtn + receiptBtn
         });
 
         m.body.addEventListener('click', function (e) {

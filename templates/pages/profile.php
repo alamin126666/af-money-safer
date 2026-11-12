@@ -19,6 +19,12 @@
   <input type="file" id="photoFile" accept="image/jpeg,image/png,image/webp" hidden>
 </section>
 <section class="card">
+  <h3 data-i18n="twofa_title"></h3>
+  <p class="muted" data-i18n="twofa_desc"></p>
+  <div class="row"><span class="muted" data-i18n="twofa_status"></span><b id="twofaState">—</b></div>
+  <button class="btn btn-primary btn-block" id="twofaBtn" type="button" data-act="2fa" style="margin-top:12px"><span id="twofaBtnLabel" data-i18n="twofa_enable"></span></button>
+</section>
+<section class="card">
   <h3 data-i18n="preferences"></h3>
   <div class="pref"><span data-i18n="language"></span><div class="seg" id="segLang"><button data-v="bn">বাংলা</button><button data-v="en">English</button></div></div>
   <div class="pref"><span data-i18n="theme"></span><div class="seg" id="segTheme"><button data-v="light" data-i18n="light"></button><button data-v="dark" data-i18n="dark"></button></div></div>

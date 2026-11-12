@@ -145,6 +145,15 @@ final class PaymentService
         if (isset($_SESSION['wd']['sentAt']) && time() - (int)$_SESSION['wd']['sentAt'] < (int)Config::get('otp.resend_after')) {
             throw new ApiException('OTP_COOLDOWN', 429, ['retryAfter' => (int)Config::get('otp.resend_after') - (time() - (int)$_SESSION['wd']['sentAt'])]);
         }
+        // 2FA on: no e-mail OTP at all — the Authenticator code confirms it.
+        if (TotpService::enabledFor($user['uid'])) {
+            $_SESSION['wd'] = ['totp' => true, 'amount' => $amount, 'method' => $method, 'walletNo' => $wallet,
+                               'holder' => $holder, 'sentAt' => time()];
+            return ['WITHDRAW_TOTP_REQUIRED', [
+                'email' => AuthService::maskEmail($user['email']), 'expiresIn' => 0,
+                'resendIn' => 0, 'amount' => Money::toPoisha($amount), 'fee' => $fee, 'total' => $total,
+            ]];
+        }
         $otp = OtpService::issue('withdraw', $user['email'], $user['uid'], is_string($prev) ? $prev : null);
         $_SESSION['wd'] = ['otpId' => $otp['id'], 'amount' => $amount, 'method' => $method, 'walletNo' => $wallet,
                            'holder' => $holder, 'sentAt' => time()];
@@ -157,16 +166,28 @@ final class PaymentService
         ]];
     }
 
-    /** Step 2: OTP ok -> hold balance -> call TashPay. */
+    /** Step 2: code ok -> hold balance -> (approval mode: wait for admin) -> call TashPay. */
     public static function createWithdraw(array $user, array $in): array
     {
         $w = $_SESSION['wd'] ?? null;
         if (!is_array($w)) { throw new ApiException('NO_PENDING', 400); }
         RateLimit::hit("wd_user:{$user['uid']}", 6, 3600);
         $code = preg_replace('/\D/', '', is_string($in['code'] ?? null) ? $in['code'] : '') ?? '';
-        $r = OtpService::verify((string)$w['otpId'], 'withdraw', $code);
-        if ($r['status'] !== 'ok') { throw new ApiException($r['status'], 400, ['attemptsLeft' => $r['attemptsLeft']]); }
-        unset($_SESSION['wd']);                                    // the OTP and the stored details are single-use
+        if (!empty($w['totp'])) {
+            // Authenticator code instead of the e-mail OTP (2FA on for this user).
+            $secret = TotpService::secretFor($user['uid']);
+            $fails = (int)($w['totpFails'] ?? 0);
+            if ($secret === null || !TotpService::verify($secret, $code)) {
+                $fails++;
+                if ($fails >= 5) { unset($_SESSION['wd']); throw new ApiException('NO_PENDING', 400); }
+                $_SESSION['wd']['totpFails'] = $fails;
+                throw new ApiException('TOTP_INVALID', 400, ['attemptsLeft' => 5 - $fails]);
+            }
+        } else {
+            $r = OtpService::verify((string)$w['otpId'], 'withdraw', $code);
+            if ($r['status'] !== 'ok') { throw new ApiException($r['status'], 400, ['attemptsLeft' => $r['attemptsLeft']]); }
+        }
+        unset($_SESSION['wd']);                                    // the code and the stored details are single-use
 
         $amount = (int)$w['amount'];
         $L = self::limits();
@@ -176,31 +197,92 @@ final class PaymentService
         [$txId] = WalletService::holdWithdraw($user['uid'], Money::toPoisha($amount), $fee, (string)$w['method'], (string)$w['walletNo'], (string)$w['holder']);
         $tx = WalletService::tx($txId);
 
+        // Approval mode ON: hold the money, do NOT call TashPay yet — an admin decides.
+        if (Settings::get('withdrawApproval')) {
+            WalletService::setNeedsApproval($txId, true);
+            Notifier::push($user['uid'], 'n.withdraw_awaiting_approval', ['amount' => Money::toPoisha($amount)]);
+            return ['WITHDRAW_SUBMITTED', ['txId' => $txId, 'status' => 'pending', 'awaitingApproval' => true]];
+        }
+
+        $r = self::submitWithdrawToGateway($tx);
+        if ($r['outcome'] === 'accepted') {
+            Notifier::push($user['uid'], 'n.withdraw_submitted', ['amount' => Money::toPoisha($amount)]);
+            return ['WITHDRAW_SUBMITTED', ['txId' => $txId, 'status' => 'processing']];
+        }
+        if ($r['outcome'] === 'rejected') {
+            throw new ApiException('WITHDRAW_REJECTED', 502, ['txId' => $txId]);
+        }
+        if ($r['outcome'] === 'unknown') {
+            Notifier::push($user['uid'], 'n.withdraw_submitted', ['amount' => Money::toPoisha($amount)]);
+        }
+        return ['WITHDRAW_SUBMITTED', ['txId' => $txId, 'status' => 'pending']];
+    }
+
+    /**
+     * Send a held withdraw to TashPay. Returns outcome accepted|rejected|
+     * unknown|ambiguous. Shared by createWithdraw and the admin approve flow,
+     * so the gateway call exists in exactly one place.
+     */
+    public static function submitWithdrawToGateway(array $tx): array
+    {
+        $txId = (string)$tx['id'];
         try {
             $res = TashPay::post('/withdraw', [
-                'orderId' => $tx['merchantOrderId'], 'amount' => (string)$amount, 'walletType' => $w['method'],
-                'receiveUsername' => $w['holder'], 'receiveWalletNo' => $w['walletNo'],
+                'orderId' => $tx['merchantOrderId'], 'amount' => Money::toApi((int)$tx['amount']), 'walletType' => $tx['method'],
+                'receiveUsername' => $tx['holderName'], 'receiveWalletNo' => $tx['walletNo'],
                 'notifyUrl' => (string)Config::get('tashpay.withdraw_notify_url'),
             ]);
         } catch (TashPayUnreachable $e) {
             // Outcome unknown: the money may or may not be on its way. Keep it held; reconcile asks TashPay later.
             Logger::warn('withdraw.unknown_outcome', ['tx' => $txId]);
-            Notifier::push($user['uid'], 'n.withdraw_submitted', ['amount' => Money::toPoisha($amount)]);
-            return ['WITHDRAW_SUBMITTED', ['txId' => $txId, 'status' => 'pending']];
+            return ['outcome' => 'unknown', 'txId' => $txId, 'status' => 'pending'];
         }
 
         if ($res['code'] === 0) {
             WalletService::markWithdrawProcessing($txId, isset($res['data']['transactionId']) ? (string)$res['data']['transactionId'] : null);
-            Notifier::push($user['uid'], 'n.withdraw_submitted', ['amount' => Money::toPoisha($amount)]);
-            return ['WITHDRAW_SUBMITTED', ['txId' => $txId, 'status' => 'processing']];
+            return ['outcome' => 'accepted', 'txId' => $txId, 'status' => 'processing'];
         }
         if (in_array($res['code'], TashPay::WITHDRAW_REJECTED, true)) {
             WalletService::failWithdraw($txId, 'gateway_rejected_' . $res['code']);
             AuditLog::log('system', 'withdraw.gateway_rejected', "transactions/{$txId}", ['code' => $res['code'], 'msg' => $res['msg']]);
-            throw new ApiException('WITHDRAW_REJECTED', 502, ['txId' => $txId]);
+            return ['outcome' => 'rejected', 'txId' => $txId, 'status' => 'failed'];
         }
         Logger::warn('withdraw.ambiguous_code', ['tx' => $txId, 'code' => $res['code']]);   // e.g. 5007 / 500: reconcile decides
-        return ['WITHDRAW_SUBMITTED', ['txId' => $txId, 'status' => 'pending']];
+        return ['outcome' => 'ambiguous', 'txId' => $txId, 'status' => 'pending'];
+    }
+
+    /** Admin decision on a withdraw held for approval (approval mode ON). */
+    public static function decideWithdraw(array $admin, array $in): array
+    {
+        $txId = is_string($in['txId'] ?? null) ? $in['txId'] : '';
+        $decision = is_string($in['decision'] ?? null) ? $in['decision'] : '';
+        if (!preg_match('/^[0-9a-f]{20}$/', $txId) || !in_array($decision, ['approve', 'reject'], true)) {
+            throw new ApiException('VALIDATION_FAILED', 422);
+        }
+        $tx = WalletService::tx($txId);
+        if ($tx === null || $tx['type'] !== 'withdraw' || $tx['status'] !== 'pending' || empty($tx['needsApproval'])) {
+            throw new ApiException('TX_NOT_FOUND', 404);
+        }
+        $uid = (string)$tx['userId'];
+        if ($decision === 'reject') {
+            $r = WalletService::failWithdraw($txId, 'rejected_by_admin');
+            WalletService::setNeedsApproval($txId, false);
+            if ($r['result'] === 'refunded') { Notifier::push($uid, 'n.withdraw_rejected', ['amount' => (int)$tx['amount']]); }
+            AuditLog::log($admin['uid'], 'admin.withdraw_rejected', "transactions/{$txId}", ['uid' => $uid]);
+            return ['WITHDRAW_REJECTED_BY_ADMIN', ['txId' => $txId]];
+        }
+        // Approve: send it to the gateway now, then clear the flag so the
+        // cron can resolve the outcome (unknown/ambiguous) as usual.
+        $r = self::submitWithdrawToGateway($tx);
+        WalletService::setNeedsApproval($txId, false);
+        if ($r['outcome'] === 'rejected') {
+            Notifier::push($uid, 'n.withdraw_failed', ['amount' => (int)$tx['total']]);
+            AuditLog::log($admin['uid'], 'admin.withdraw_approved_gateway_rejected', "transactions/{$txId}", ['uid' => $uid]);
+            throw new ApiException('WITHDRAW_REJECTED', 502, ['txId' => $txId]);
+        }
+        Notifier::push($uid, 'n.withdraw_submitted', ['amount' => (int)$tx['amount']]);
+        AuditLog::log($admin['uid'], 'admin.withdraw_approved', "transactions/{$txId}", ['uid' => $uid, 'outcome' => $r['outcome']]);
+        return ['WITHDRAW_APPROVED', ['txId' => $txId, 'status' => $r['status']]];
     }
 
     // ================================================================ STATUS (owner)

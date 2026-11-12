@@ -50,14 +50,21 @@ final class WalletService
     {
         $wn = (string)($d['walletNo'] ?? '');
         return [
-            'id' => $d['id'], 'type' => $d['type'], 'method' => $d['method'], 'status' => $d['status'],
+            'id' => $d['id'], 'type' => $d['type'], 'method' => $d['method'] ?? null, 'status' => $d['status'],
             'amount' => (int)$d['amount'], 'fee' => (int)($d['fee'] ?? 0), 'total' => (int)($d['total'] ?? $d['amount']),
             'credited' => (int)($d['creditedAmount'] ?? 0),
-            'orderId' => $d['merchantOrderId'], 'flowId' => $d['flowId'] ?? null,
+            'orderId' => $d['merchantOrderId'] ?? null, 'flowId' => $d['flowId'] ?? null,
             'walletNo' => $wn !== '' ? substr($wn, 0, 3) . '****' . substr($wn, -3) : null,
             'holderName' => $d['holderName'] ?? null,
+            'needsApproval' => (bool)($d['needsApproval'] ?? false),
             'createdAtMs' => (int)$d['createdAtMs'], 'updatedAtMs' => (int)$d['updatedAtMs'],
         ];
+    }
+
+    /** Flip the admin-approval flag on a withdraw (set when approval mode holds it, cleared on decision). */
+    public static function setNeedsApproval(string $txId, bool $v): void
+    {
+        self::col('transactions')->document($txId)->update(self::pairs(['needsApproval' => $v, 'updatedAtMs' => Time::ms()]));
     }
 
     // -------------------------------------------------------------- deposits

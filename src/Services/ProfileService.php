@@ -33,7 +33,8 @@ final class ProfileService
         $avatar = $d['avatar'] ?? ['type' => 'preset', 'key' => 'default'];
         return ['uid' => $user['uid'], 'fullName' => $d['fullName'], 'email' => $d['email'],
                 'accountId' => strtoupper(substr(hash('sha256', $user['uid']), 0, 10)),
-                'registeredAtMs' => $ms, 'avatar' => $avatar, 'isAdmin' => AdminGuard::isAdminSession(), 'lang' => $d['lang'] ?? 'bn', 'theme' => $d['theme'] ?? 'light'];
+                'registeredAtMs' => $ms, 'avatar' => $avatar, 'isAdmin' => AdminGuard::isAdminSession(), 'lang' => $d['lang'] ?? 'bn', 'theme' => $d['theme'] ?? 'light',
+                'totpEnabled' => (bool)($d['totpEnabled'] ?? false)];
     }
 
     public static function updateName(array $user, array $in): array

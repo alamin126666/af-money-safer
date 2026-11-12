@@ -11,12 +11,12 @@
     if (p[0] !== 'admin') { return null; }
     var v = p[1] || 'dashboard';
     if (v === 'setup') { return 'setup'; }
-    if (['dashboard', 'users', 'transactions', 'settings', 'audit', 'login'].indexOf(v) === -1) { v = 'dashboard'; }
+    if (['dashboard', 'users', 'transactions', 'settings', 'audit', 'login', 'promos', 'broadcast', 'reports'].indexOf(v) === -1) { v = 'dashboard'; }
     return v;
   }
 
-  var TITLES = { dashboard: 'Dashboard', users: 'Users', transactions: 'Transactions', settings: 'Settings', audit: 'Audit log', login: 'Admin Login', setup: 'Admin Setup' };
-  var NAV = [['dashboard', 'Dashboard', 'home'], ['users', 'Users', 'user'], ['transactions', 'Transactions', 'history'], ['settings', 'Settings', 'settings'], ['audit', 'Audit log', 'clock']];
+  var TITLES = { dashboard: 'Dashboard', users: 'Users', transactions: 'Transactions', settings: 'Settings', audit: 'Audit log', login: 'Admin Login', setup: 'Admin Setup', promos: 'Promo codes', broadcast: 'Broadcast', reports: 'Reports' };
+  var NAV = [['dashboard', 'Dashboard', 'home'], ['users', 'Users', 'user'], ['transactions', 'Transactions', 'history'], ['promos', 'Promo codes', 'sparkle'], ['broadcast', 'Broadcast', 'send'], ['reports', 'Reports', 'chart'], ['settings', 'Settings', 'settings'], ['audit', 'Audit log', 'clock']];
 
   function shellHTML(active) {
     var links = NAV.map(function (n) {
@@ -183,6 +183,7 @@
         + statCard('withdraw', 't-blue', 'Total withdrawn', tk(d.totalWithdrawn || 0), 'lifetime')
         + statCard('clock', 't-purple', 'Pending deposits', E(d.pendingDeposits), 'awaiting payment')
         + statCard('clock', 't-red', 'Pending withdraws', E(d.pendingWithdraws), 'awaiting payout')
+        + (d.awaitingApproval != null ? statCard('clock', 't-gold', 'Awaiting approval', E(d.awaitingApproval), 'needs an admin decision') : '')
         + statCard('alert', 't-red', 'Needs review', E(d.needsReview), d.needsReview ? 'check transactions' : 'all clear');
       var sys = document.getElementById('spaSys'); if (sys) { sys.innerHTML = '<div class="kv"><span class="muted">Maintenance mode</span><b>' + (d.maintenance ? 'ON' : 'off') + '</b></div><div class="kv"><span class="muted">TashPay merchant balance</span><b>' + (d.merchantBalance == null ? 'n/a' : E(d.merchantBalance)) + '</b></div>'; }
     });
@@ -223,20 +224,29 @@
   }
 
   function vTransactions() {
-    content('<section class="card"><form id="spaQ" class="filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><input class="txt" name="id" placeholder="Tx id or order id" style="flex:1;min-width:180px"><select name="status"><option value="">Any status</option><option>pending</option><option>processing</option><option>successful</option><option>failed</option><option>cancelled</option></select><select name="type"><option value="">Any type</option><option>deposit</option><option>withdraw</option></select><button class="btn btn-primary">Filter</button></form><div id="spaRes"><div class="empty">…</div></div></section>');
+    content('<section class="card"><form id="spaQ" class="filters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><input class="txt" name="id" placeholder="Tx id or order id" style="flex:1;min-width:180px"><select name="status"><option value="">Any status</option><option>pending</option><option>processing</option><option>successful</option><option>failed</option><option>cancelled</option><option value="awaiting">Awaiting approval</option></select><select name="type"><option value="">Any type</option><option>deposit</option><option>withdraw</option></select><button class="btn btn-primary">Filter</button></form><div id="spaRes"><div class="empty">…</div></div></section>');
     var A = window.AFAdmin, E = A.E, tk = A.tk, dt = A.dt, st = A.st;
     function run(f) {
       AF.api('admin/transactions.php', f).then(function (j) {
         if (!j.success) { return; }
         var el = document.getElementById('spaRes'); if (!el) { return; }
         el.innerHTML = '<div class="scroll-x"><table class="tbl"><tr><th>Date</th><th>Type</th><th>Amount</th><th>Fee</th><th>Status</th><th></th></tr>' + j.data.items.map(function (t) {
-          return '<tr><td>' + E(dt(t.createdAtMs)) + '</td><td>' + E(t.type + ' · ' + t.method) + '</td><td>' + E(tk(t.amount)) + '</td><td>' + E(tk(t.fee)) + '</td><td>' + st(t.status) + (t.needsReview ? ' ' + AF.lotIcon('alert', 14) : '') + '</td><td><button class="link-btn" data-t="' + E(t.id) + '">Open</button></td></tr>';
+          return '<tr><td>' + E(dt(t.createdAtMs)) + '</td><td>' + E(t.type + ' · ' + t.method) + '</td><td>' + E(tk(t.amount)) + '</td><td>' + E(tk(t.fee)) + '</td><td>' + st(t.status) + (t.needsReview ? ' ' + AF.lotIcon('alert', 14) : '') + '</td><td><button class="link-btn" data-t="' + E(t.id) + '">Open</button>'
+            + (t.needsApproval ? ' <button class="btn btn-primary btn-sm" data-approve="' + E(t.id) + '">Approve</button> <button class="btn btn-danger btn-sm" data-reject="' + E(t.id) + '">Reject</button>' : '') + '</td></tr>';
         }).join('') + '</table></div>';
       });
     }
     run({});
     document.getElementById('spaQ').addEventListener('submit', function (e) { e.preventDefault(); run(AF.form(e.target)); });
-    document.getElementById('spaRes').addEventListener('click', function (e) { var b = e.target.closest('[data-t]'); if (b) { A.txModal(b.getAttribute('data-t')); } });
+    document.getElementById('spaRes').addEventListener('click', function (e) {
+      var ap = e.target.closest('[data-approve]'), rj = e.target.closest('[data-reject]');
+      if (ap || rj) {
+        var id = ap ? ap.getAttribute('data-approve') : rj.getAttribute('data-reject');
+        AF.api('admin/withdraw-decision.php', { txId: id, decision: ap ? 'approve' : 'reject' }, { ok: true }).then(function (j) { if (j.success) { run(AF.form(document.getElementById('spaQ'))); } });
+        return;
+      }
+      var b = e.target.closest('[data-t]'); if (b) { A.txModal(b.getAttribute('data-t')); }
+    });
   }
 
   function feePreviewBox() {
@@ -271,6 +281,8 @@
         + '<div class="maint-live" id="spaMaintLive" hidden></div>'
         + '<div class="maint-fields" id="spaMaintFields"><label class="field"><span>Reason (shown to users)</span><div class="input"><input name="maintenanceReason" value="' + E(s.maintenanceReason || '') + '" maxlength="200" placeholder="e.g. Server upgrade in progress"></div></label>'
         + '<label class="field"><span>How long</span><div class="input select-modern"><select name="maintenanceMinutes">' + mins() + '</select><span class="select-chev">' + AF.lotIcon('chevron', 18) + '</span></div></label></div></section>'
+        + '<section class="card"><div class="maint-head"><span class="maint-ic">' + AF.lotIcon('shield-check', 22) + '</span><div class="maint-title"><h3>Withdraw approval</h3><p class="muted">When on, every withdraw waits for an admin to approve or reject it (Transactions view). When off, withdraws go to TashPay automatically as before.</p></div>'
+        + '<label class="m-toggle" aria-label="Withdraw approval"><input type="checkbox" name="withdrawApproval" ' + (s.withdrawApproval ? 'checked' : '') + '><span class="m-track"><span class="m-knob"></span></span></label></div></section>'
         + '<button class="btn btn-primary btn-block">Save settings</button>';
       feePreview(form);
       form.addEventListener('input', function () { feePreview(form); });
@@ -289,8 +301,142 @@
         }
         tick(); setInterval(tick, 1000);
       })();
-      form.addEventListener('submit', function (e) { e.preventDefault(); var d = AF.form(e.target); d.maintenance = e.target.maintenance.checked; AF.api('admin/settings-update.php', d, { ok: true }); });
+      form.addEventListener('submit', function (e) { e.preventDefault(); var d = AF.form(e.target); d.maintenance = e.target.maintenance.checked; d.withdrawApproval = e.target.withdrawApproval.checked; AF.api('admin/settings-update.php', d, { ok: true }); });
     });
+  }
+
+  function vPromos() {
+    content('<section class="card"><h3 style="margin-top:0">Create promo code</h3><form id="spaPromoForm" style="display:flex;gap:8px;flex-wrap:wrap">'
+      + '<input class="txt" name="code" placeholder="Code (A-Z, 0-9, 4-20 chars)" style="flex:2;min-width:140px;text-transform:uppercase">'
+      + '<input class="txt" name="amount" placeholder="Bonus (BDT)" inputmode="numeric" style="flex:1;min-width:110px">'
+      + '<input class="txt" name="maxUses" placeholder="Max uses (0 = unlimited)" inputmode="numeric" style="flex:1;min-width:120px">'
+      + '<input class="txt" name="expiryDays" placeholder="Valid for (days, 0 = never)" inputmode="numeric" style="flex:1;min-width:130px">'
+      + '<label style="display:flex;align-items:center;gap:6px"><input type="checkbox" name="active" checked> Active</label>'
+      + '<button class="btn btn-primary">Create</button></form></section>'
+      + '<section class="card"><h3 style="margin-top:0">Promo codes</h3><div id="spaPromoRes"><div class="empty">…</div></div></section>');
+    var E = AF.esc, tk = window.AFAdmin.tk;
+    function run() {
+      AF.api('admin/promo-codes.php', undefined, { quiet: true, method: 'GET' }).then(function (j) {
+        var el = document.getElementById('spaPromoRes'); if (!el) { return; }
+        if (!j.success) { el.innerHTML = '<div class="empty">Could not load promo codes.</div>'; return; }
+        if (!j.data.items.length) { el.innerHTML = '<div class="empty">No promo codes yet.</div>'; return; }
+        el.innerHTML = '<div class="scroll-x"><table class="tbl"><tr><th>Code</th><th>Bonus</th><th>Used</th><th>Expires</th><th>Active</th><th></th></tr>' + j.data.items.map(function (p) {
+          return '<tr><td><b>' + E(p.code) + '</b></td><td>' + E(tk(p.amount)) + '</td><td>' + E(p.usedCount) + (p.maxUses > 0 ? ' / ' + E(p.maxUses) : ' / ∞') + '</td><td>' + (p.expiresAtMs ? E(new Date(p.expiresAtMs).toLocaleDateString()) : 'never') + '</td><td>' + (p.active ? 'yes' : 'no') + '</td><td><button class="link-btn" data-pt="' + E(p.code) + '">' + (p.active ? 'Deactivate' : 'Activate') + '</button> <button class="link-btn" data-pd="' + E(p.code) + '">Delete</button></td></tr>';
+        }).join('') + '</table></div>';
+      });
+    }
+    run();
+    document.getElementById('spaPromoForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var d = AF.form(e.target); d.action = 'create'; d.active = e.target.active.checked;
+      AF.api('admin/promo-codes.php', d, { ok: true }).then(function (j) { if (j.success) { e.target.reset(); e.target.active.checked = true; run(); } });
+    });
+    document.getElementById('spaPromoRes').addEventListener('click', function (e) {
+      var t = e.target.closest('[data-pt]'), d = e.target.closest('[data-pd]');
+      if (t) { AF.api('admin/promo-codes.php', { action: 'toggle', code: t.getAttribute('data-pt') }, { ok: true }).then(function (j) { if (j.success) { run(); } }); }
+      if (d) { AF.api('admin/promo-codes.php', { action: 'delete', code: d.getAttribute('data-pd') }, { ok: true }).then(function (j) { if (j.success) { run(); } }); }
+    });
+  }
+
+  function vBroadcast() {
+    content('<section class="card"><h3 style="margin-top:0">Send broadcast</h3><form id="spaBcForm">'
+      + '<label class="field"><span>Title</span><div class="input"><input name="title" maxlength="120" required></div></label>'
+      + '<label class="field"><span>Message</span><textarea class="txt" name="message" maxlength="500" rows="3" required></textarea></label>'
+      + '<button class="btn btn-primary btn-block">Send to all users</button></form>'
+      + '<p class="muted" style="font-size:.85rem">At most one broadcast every 5 minutes. Every user gets an in-website notification.</p></section>'
+      + '<section class="card"><h3 style="margin-top:0">Recent broadcasts</h3><div id="spaBcRes"><div class="empty">…</div></div></section>');
+    var E = AF.esc;
+    function run() {
+      AF.api('admin/broadcast.php', undefined, { quiet: true, method: 'GET' }).then(function (j) {
+        var el = document.getElementById('spaBcRes'); if (!el) { return; }
+        if (!j.success || !j.data.items.length) { el.innerHTML = '<div class="empty">No broadcasts yet.</div>'; return; }
+        el.innerHTML = j.data.items.map(function (b) {
+          return '<div class="kv"><span><b>' + E(b.title) + '</b><br><small class="muted">' + E(b.message) + '</small></span><span class="muted">' + E(b.sentCount) + ' users · ' + E(new Date(b.createdAtMs).toLocaleString()) + '</span></div>';
+        }).join('');
+      });
+    }
+    run();
+    document.getElementById('spaBcForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var d = AF.form(e.target);
+      d.message = e.target.message.value;   // AF.form only reads input/select, not textarea
+      var m = AF.modal({ title: 'Send broadcast?', html: '<p><b>' + E(d.title) + '</b></p><p class="muted">' + E(d.message) + '</p><p style="margin-top:14px"><button class="btn btn-primary btn-block" id="bcGo" type="button">Send to all users</button></p>' });
+      m.el.querySelector('#bcGo').addEventListener('click', function () {
+        AF.api('admin/broadcast.php', d, { ok: true }).then(function (j) { m.close(); if (j.success) { e.target.reset(); run(); } });
+      });
+    });
+  }
+
+  function vReports() {
+    content('<section class="card"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">Reports</h3><div class="seg" id="spaRepRange"><button data-v="7">7 days</button><button data-v="30" class="on">30 days</button></div></div>'
+      + '<div class="stat-grid" id="spaRepStats" style="margin-top:14px"></div></section>'
+      + '<section class="card"><h3 style="margin-top:0">Daily volume</h3><div class="chart-wrap"><canvas id="spaRepCv"></canvas></div>'
+      + '<div class="chart-legend"><span><i style="background:var(--ok)"></i>Deposit</span><span><i style="background:var(--danger)"></i>Withdraw</span></div></section>'
+      + '<section class="card"><h3 style="margin-top:0">Method split</h3><div id="spaRepMethods"><div class="empty">…</div></div></section>');
+    var E = AF.esc, tk = window.AFAdmin.tk, days = 30, data = null;
+    function drawChart() {
+      var cv = document.getElementById('spaRepCv'); if (!cv || !data) { return; }
+      var series = data.series || [];
+      var ctx = cv.getContext('2d');
+      var w = cv.clientWidth || cv.parentNode.clientWidth || 320, h = 170, dpr = window.devicePixelRatio || 1;
+      cv.width = w * dpr; cv.height = h * dpr; cv.style.height = h + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      var cs = getComputedStyle(document.documentElement);
+      var depC = (cs.getPropertyValue('--ok') || '#12a36b').trim();
+      var wdC = (cs.getPropertyValue('--danger') || '#e0524a').trim();
+      var mutC = (cs.getPropertyValue('--muted') || '#888888').trim();
+      var max = 0;
+      series.forEach(function (d) { max = Math.max(max, d.deposit, d.withdraw); });
+      if (max <= 0) { return; }
+      var padL = 6, padB = 20, padT = 8, plotH = h - padB - padT;
+      var gw = (w - padL * 2) / series.length, bw = Math.max(3, Math.min(12, (gw - 6) / 2));
+      function bar(x, y, bw2, bh) {
+        if (bh <= 0) { return; }
+        if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, bw2, bh, 2); ctx.fill(); }
+        else { ctx.fillRect(x, y, bw2, bh); }
+      }
+      series.forEach(function (d, i) {
+        var x0 = padL + i * gw + (gw - bw * 2 - 3) / 2;
+        var dh = d.deposit > 0 ? Math.max(2, d.deposit / max * plotH) : 0;
+        var wh = d.withdraw > 0 ? Math.max(2, d.withdraw / max * plotH) : 0;
+        ctx.fillStyle = depC; bar(x0, padT + plotH - dh, bw, dh);
+        ctx.fillStyle = wdC; bar(x0 + bw + 3, padT + plotH - wh, bw, wh);
+        ctx.fillStyle = mutC;
+        ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText(String(new Date(d.date + 'T00:00:00+06:00').getDate()), x0 + bw + 1.5, h - 6);
+      });
+    }
+    function run() {
+      AF.api('admin/reports.php?days=' + days, undefined, { quiet: true, method: 'GET' }).then(function (j) {
+        if (!j.success) { return; }
+        data = j.data;
+        var t = data.totals;
+        var el = document.getElementById('spaRepStats'); if (!el) { return; }
+        el.innerHTML = statCard('deposit', 't-green', 'Deposits', tk(t.deposits.sum), E(t.deposits.count) + ' in ' + data.days + ' days')
+          + statCard('withdraw', 't-blue', 'Withdraws', tk(t.withdraws.sum), E(t.withdraws.count) + ' in ' + data.days + ' days')
+          + statCard('sparkle', 't-gold', 'Bonuses', tk(t.bonuses.sum), E(t.bonuses.count) + ' redeemed · ' + E(data.promoRedemptions) + ' promo redemptions')
+          + statCard('user', 't-purple', 'New users', E(data.newUsers), 'in ' + data.days + ' days')
+          + statCard('clock', 't-red', 'Pending withdraws', E(data.pendingWithdraws), 'awaiting payout')
+          + statCard('clock', 't-gold', 'Awaiting approval', E(data.awaitingApproval), 'needs an admin decision');
+        var mEl = document.getElementById('spaRepMethods');
+        if (mEl) {
+          var m = data.methods;
+          mEl.innerHTML = '<div class="scroll-x"><table class="tbl"><tr><th></th><th>bKash</th><th>Nagad</th></tr>'
+            + '<tr><td>Deposits</td><td>' + E(tk(m.deposit.bKash.sum)) + ' (' + E(m.deposit.bKash.count) + ')</td><td>' + E(tk(m.deposit.Nagad.sum)) + ' (' + E(m.deposit.Nagad.count) + ')</td></tr>'
+            + '<tr><td>Withdraws</td><td>' + E(tk(m.withdraw.bKash.sum)) + ' (' + E(m.withdraw.bKash.count) + ')</td><td>' + E(tk(m.withdraw.Nagad.sum)) + ' (' + E(m.withdraw.Nagad.count) + ')</td></tr></table></div>';
+        }
+        drawChart();
+      });
+    }
+    run();
+    document.getElementById('spaRepRange').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) { return; }
+      days = parseInt(b.getAttribute('data-v'), 10);
+      [].forEach.call(document.querySelectorAll('#spaRepRange button'), function (x) { x.classList.toggle('on', x === b); });
+      run();
+    });
+    window.addEventListener('resize', drawChart);
   }
 
   function vAudit() {
@@ -305,7 +451,7 @@
     });
   }
 
-  var VIEWS = { dashboard: vDashboard, users: vUsers, transactions: vTransactions, settings: vSettings, audit: vAudit, login: vLogin, setup: vSetup };
+  var VIEWS = { dashboard: vDashboard, users: vUsers, transactions: vTransactions, settings: vSettings, audit: vAudit, login: vLogin, setup: vSetup, promos: vPromos, broadcast: vBroadcast, reports: vReports };
 
   function render() {
     var v = parse();

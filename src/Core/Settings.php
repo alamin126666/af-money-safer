@@ -18,6 +18,7 @@ final class Settings
             'depositFeePercent' => (float)$l['deposit_fee_percent'], 'withdrawFeePercent' => (float)$l['withdraw_fee_percent'],
             'maintenance' => (bool)Config::get('app.maintenance'),
             'maintenanceReason' => '', 'maintenanceUntilMs' => 0,
+            'withdrawApproval' => false,
         ];
     }
 
@@ -52,6 +53,7 @@ final class Settings
             'depositFeePercent' => (float)$d['depositFeePercent'], 'withdrawFeePercent' => (float)$d['withdrawFeePercent'],
             'maintenance' => (bool)$d['maintenance'],
             'maintenanceReason' => (string)($d['maintenanceReason'] ?? ''), 'maintenanceUntilMs' => (int)($d['maintenanceUntilMs'] ?? 0),
+            'withdrawApproval' => (bool)($d['withdrawApproval'] ?? false),
         ];
         @file_put_contents($file, json_encode($d), LOCK_EX);
         return self::$mem = $d;

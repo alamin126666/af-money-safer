@@ -42,6 +42,11 @@ AF.ready(function () {
       if (j.success && j.data && j.data.next === 'dashboard') {
         AF.toast(j.message, 'success'); AF.go('/dashboard.php'); return;
       }
+      // 2FA on: the Authenticator code replaces the e-mail OTP.
+      if (j.success && (j.code === 'TOTP_REQUIRED' || (j.data && j.data.purpose === 'totp'))) {
+        sessionStorage.setItem('af_otp', JSON.stringify({ purpose: 'totp', email: j.data.email, resendAt: 0, len: 6 }));
+        AF.toast(j.message, 'success'); AF.go('/verify.php'); return;
+      }
       if (j.success || j.code === 'MAIL_FAILED') {
         sessionStorage.setItem('af_otp', JSON.stringify({ purpose: j.data.purpose, email: j.data.email, resendAt: Date.now() + (j.data.resendIn || 60) * 1000, len: j.data.codeLength || 6 }));
         if (j.success) { AF.toast(j.message, 'success'); }

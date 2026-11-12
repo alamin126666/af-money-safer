@@ -5,9 +5,13 @@ All access is server-side (Admin SDK). `firestore.rules` denies every client rea
 
 | Collection | Doc ID | Key fields |
 |---|---|---|
-| `users` | Firebase Auth UID | fullName, email, emailLower, status (`active`/`disabled`), emailVerified, avatar {type:`preset`/`upload`, key}, lang, theme, createdAt, lastLoginAt |
+| `users` | Firebase Auth UID | fullName, email, emailLower, status (`active`/`disabled`), emailVerified, avatar {type:`preset`/`upload`, key}, lang, theme, createdAt, lastLoginAt, totpSecret (server-side only), totpEnabled (bool), totpEnabledAtMs |
 | `wallets` | UID | balance, held, totalDeposit, totalWithdraw, version, updatedAt |
-| `transactions` | random 20-char | userId, type (`deposit`/`withdraw`), method (`bKash`/`Nagad`), amount, fee, status (`pending`/`processing`/`successful`/`failed`/`cancelled`), merchantOrderId, platformTxId, flowId, walletNo (masked), holderName, errorMsg, createdAt, updatedAt |
+| `transactions` | random 20-char | userId, type (`deposit`/`withdraw`/`bonus`), method (`bKash`/`Nagad`, null for bonus), amount, fee, status (`pending`/`processing`/`successful`/`failed`/`cancelled`), merchantOrderId, platformTxId, flowId, walletNo (masked), holderName, errorMsg, createdAt, updatedAt, needsApproval (bool — withdraw held for admin approval), promoCode (bonus only) |
+| `saved_numbers` | random 20-char | userId, name, method (`bKash`/`Nagad`), walletNo (normalized 01XXXXXXXXX), createdAtMs — unlimited per user, scoped by userId |
+| `promo_codes` | the code itself (uppercase A-Z0-9, 4-20) | amount (poisha), maxUses (0 = unlimited), usedCount, expiresAtMs (0 = never), active, createdBy, createdAtMs |
+| `promo_redemptions` | `{code}_{uid}` | code, userId, amount, createdAtMs — one redemption per user per code |
+| `broadcasts` | random | title, message, createdBy, sentCount, createdAtMs |
 | `ledger` | deterministic (see below) | userId, txId, kind, amount (signed, effect on available balance), heldDelta, balanceAfter, reason, actor, createdAtMs — **create-only, never updated/deleted** |
 | `payment_orders` | merchantOrderId (<=50 chars) | txId, userId, direction, requestedAmount, tashpayRequestHash, lastQueryAt |
 | `webhook_events` | sha256(dir+orderId+transactionId+status+amount) | direction, receivedAt, processedAt, result |
@@ -17,7 +21,7 @@ All access is server-side (Admin SDK). `firestore.rules` denies every client rea
 | `avatars` | UID | data (256x256 JPEG blob), mime, key |
 | `notifications` | random | userId, titleKey, bodyKey, params, read, createdAt |
 | `audit_logs` | random | actor, action, target, before, after, ipHash, createdAt |
-| `settings` | `app` | limits, fees, maintenance flag, updatedBy |
+| `settings` | `app` | limits, fees, maintenance flag, withdrawApproval (bool, default false), updatedBy |
 | `admin_users` | UID | role (`viewer`/`operator`/`super`), permissions[], active |
 
 ## Idempotent ledger IDs
@@ -28,6 +32,7 @@ Ledger doc ID makes a second credit impossible (`create()` fails if the doc exis
 - `wd_hold_{txId}` - balance -> held
 - `wd_settle_{txId}` - held released on success
 - `wd_refund_{txId}` - held -> balance on failure
+- `bonus_{code}_{uid}` - promo bonus credit (one per user per code)
 - `adj_{uuid}` - admin adjustment (requires reason + permission + audit_log)
 
 ## Withdraw state machine

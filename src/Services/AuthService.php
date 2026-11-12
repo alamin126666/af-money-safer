@@ -141,6 +141,14 @@ final class AuthService
         }
         $purpose = !empty($u['emailVerified']) ? 'login' : 'register';
 
+        // 2FA on: the Authenticator code replaces the e-mail OTP entirely —
+        // and a trusted device never skips it (TOTP is asked every login).
+        if (!empty($u['totpEnabled'])) {
+            $_SESSION['pending'] = ['purpose' => 'totp', 'uid' => $uid, 'email' => $email, 'sentAt' => time(), 'totpFails' => 0];
+            return ['TOTP_REQUIRED', ['next' => 'verify', 'purpose' => 'totp', 'email' => self::maskEmail($email),
+                                      'expiresIn' => 0, 'resendIn' => 0, 'codeLength' => 6]];
+        }
+
         // ── Remember-me: skip OTP if device is trusted (login only, not first-time register) ──
         if ($purpose === 'login' && !empty($in['rememberMe'])) {
             $deviceId = self::s($in, 'deviceId', 128);
@@ -354,6 +362,35 @@ final class AuthService
         // After OTP verified: if rememberMe was set, trust the device
         $pendingDevice = $_SESSION['pendingRememberMe'] ?? null;
         $result = self::completeLogin((string)$p['uid'], $p['purpose'] === 'register');
+        if (is_string($pendingDevice) && $pendingDevice !== '') {
+            self::trustDevice((string)$p['uid'], $pendingDevice);
+        }
+        unset($_SESSION['pendingRememberMe']);
+        return $result;
+    }
+
+    /** Verify the Authenticator (TOTP) code after a TOTP_REQUIRED login. */
+    public static function verifyTotp(array $in): array
+    {
+        $p = self::pending();
+        if (($p['purpose'] ?? '') !== 'totp' || empty($p['uid'])) {
+            throw new ApiException('NO_PENDING', 400);
+        }
+        RateLimit::hit('totp_verify_ip:' . Request::ip(), 30, 900);
+        $code = preg_replace('/\D/', '', self::s($in, 'code', 12)) ?? '';
+        $secret = TotpService::secretFor((string)$p['uid']);
+        $fails = (int)($p['totpFails'] ?? 0);
+        if ($secret === null || !TotpService::verify($secret, $code)) {
+            $fails++;
+            if ($fails >= 5) { unset($_SESSION['pending']); throw new ApiException('NO_PENDING', 400); }
+            $_SESSION['pending']['totpFails'] = $fails;
+            throw new ApiException('TOTP_INVALID', 400, ['attemptsLeft' => 5 - $fails]);
+        }
+        // Same tail as verifyOtp: trust the device if remember-me was set.
+        // 2FA logins never set it, so this is a no-op for them — TOTP is
+        // always asked again at the next login.
+        $pendingDevice = $_SESSION['pendingRememberMe'] ?? null;
+        $result = self::completeLogin((string)$p['uid'], false);
         if (is_string($pendingDevice) && $pendingDevice !== '') {
             self::trustDevice((string)$p['uid'], $pendingDevice);
         }
