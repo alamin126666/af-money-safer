@@ -37,33 +37,55 @@ AF.ready(function () {
   });
   document.addEventListener('af:lang', limits);
 
-  /* ── Saved withdraw numbers (unlimited, with name) ── */
-  var savedWrap = $('#savedWrap'), savedList = $('#savedList');
+  /* ── Saved withdraw numbers: a button (only when any exist) opens a
+     picker dialog — search bar on top, full list below. Tapping a row
+     fills method + wallet number + holder name and closes the dialog. ── */
+  var pickBtn = $('#savedPickBtn'), savedItems = [];
   function maskNo(n) { return n ? n.slice(0, 3) + '****' + n.slice(-3) : ''; }
-  function loadSaved() {
-    if (!savedList) { return; }
-    AF.api('withdraw/saved-numbers.php', undefined, { quiet: true }).then(function (j) {
-      if (!j.success) { return; }
-      var items = j.data.items || [];
-      savedWrap.hidden = items.length === 0;
-      savedList.innerHTML = '';
-      items.forEach(function (it) {
+  function fillFrom(it) {
+    var btn = document.querySelector('.method[data-m="' + it.method + '"]');
+    if (btn) { btn.click(); }
+    wno.value = it.walletNo;
+    var hn = f.querySelector('[name=holderName]'); if (hn) { hn.value = it.name; }
+    summary();
+  }
+  function openPicker() {
+    var m = AF.modal({
+      title: AF.t('saved_numbers'),
+      html: '<div class="input" style="margin-bottom:10px"><span data-icon="search"></span><input type="text" id="snSearch" autocomplete="off" placeholder="' + AF.esc(AF.t('saved_num_search')) + '"></div>'
+        + '<div id="snPickList"></div><p class="muted" id="snPickEmpty" hidden>' + AF.esc(AF.t('saved_num_no_match')) + '</p>'
+    });
+    var list = m.el.querySelector('#snPickList'), empty = m.el.querySelector('#snPickEmpty'),
+        search = m.el.querySelector('#snSearch');
+    function draw(q) {
+      var query = (q || '').toLowerCase();
+      var rows = savedItems.filter(function (it) {
+        return !query || it.name.toLowerCase().indexOf(query) > -1
+          || it.method.toLowerCase().indexOf(query) > -1
+          || it.walletNo.indexOf(query) > -1;
+      });
+      list.innerHTML = '';
+      if (empty) { empty.hidden = rows.length > 0; }
+      rows.forEach(function (it) {
         var el = document.createElement('div'); el.className = 'saved-num';
         el.innerHTML = '<div class="tx-ic">' + AF.lotIcon('wallet', 18) + '</div>'
           + '<div class="tx-main"><b>' + AF.esc(it.name) + '</b><small>' + AF.esc(it.method) + ' · ' + AF.esc(maskNo(it.walletNo)) + '</small></div>';
-        el.addEventListener('click', function () {
-          var btn = document.querySelector('.method[data-m="' + it.method + '"]');
-          if (btn) { btn.click(); }
-          wno.value = it.walletNo;
-          var hn = f.querySelector('[name=holderName]'); if (hn) { hn.value = it.name; }
-          summary();
-        });
-        savedList.appendChild(el);
+        el.addEventListener('click', function () { fillFrom(it); m.close(); });
+        list.appendChild(el);
       });
-      AF.apply(savedList);
+      AF.apply(list);
+    }
+    search.addEventListener('input', function () { draw(search.value); });
+    draw('');
+  }
+  if (pickBtn) {
+    pickBtn.addEventListener('click', openPicker);
+    AF.api('withdraw/saved-numbers.php', undefined, { quiet: true }).then(function (j) {
+      if (!j.success) { return; }
+      savedItems = j.data.items || [];
+      pickBtn.hidden = savedItems.length === 0;
     });
   }
-  loadSaved();
 
   $('#methods').addEventListener('click', function (e) {
     var b = e.target.closest('.method'); if (!b) { return; }
