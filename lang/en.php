@@ -88,6 +88,7 @@ return [
     'SETTINGS_SAVED' => 'Settings saved.',
     'USER_STATUS_UPDATED' => 'User status updated.',
     'BALANCE_ADJUSTED' => 'Balance adjusted.',
+    'USER_DELETED' => 'User account deleted.',
     'INVALID_AMOUNT' => 'Invalid amount.',
     'AMOUNT_OUT_OF_RANGE' => 'Amount is outside the allowed range.',
     'INVALID_METHOD' => 'Select bKash or Nagad.',

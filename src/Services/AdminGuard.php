@@ -12,7 +12,7 @@ final class AdminGuard
     private const ROLES = [
         'viewer'   => ['view'],
         'operator' => ['view', 'users', 'settings'],
-        'super'    => ['view', 'users', 'settings', 'balance'],
+        'super'    => ['view', 'users', 'settings', 'balance', 'delete'],
     ];
 
     public static function adminDoc(string $uid): ?array

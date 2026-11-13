@@ -5,18 +5,28 @@ window.AFAdmin = (function () {
   var dt = function (ms) { return ms ? new Date(ms).toLocaleString() : '—'; };
   var tk = function (p) { return '৳' + AF.money(p); };
 
-  function userModal(uid) {
+  function userModal(uid, onDone) {
     AF.api('admin/users.php', { uid: uid }).then(function (j) {
       if (!j.success) { return; } var u = j.data.user, w = j.data.wallet;
       var m = AF.modal({ title: u.fullName, html: '<p class="muted">' + E(u.email) + ' · ' + st(u.status) + '</p><div class="stat"><span>Balance</span><b>' + tk(w.balance) + '</b></div><div class="stat"><span>Held</span><b>' + tk(w.held) + '</b></div>' +
         '<div class="stat"><span>Deposited / Withdrawn</span><b>' + tk(w.totalDeposit) + ' / ' + tk(w.totalWithdraw) + '</b></div>' +
         '<h3 style="margin-top:12px">Account status</h3><form id="stf"><label class="field"><div class="input"><input name="reason" placeholder="Reason (required)"></div></label><button class="btn btn-ghost btn-block" data-s="' + (u.status === 'active' ? 'disabled' : 'active') + '">' + (u.status === 'active' ? 'Disable account' : 'Activate account') + '</button></form>' +
         '<h3 style="margin-top:12px">Balance adjustment (super admin)</h3><form id="adj"><label class="field"><div class="input"><input name="amount" placeholder="BDT, e.g. 500 or -500" inputmode="numeric"></div></label><label class="field"><div class="input"><input name="reason" placeholder="Reason (min 10 chars)"></div></label><label class="field"><div class="input"><input name="password" type="password" placeholder="Your password" autocomplete="current-password"></div></label><button class="btn btn-danger btn-block">Apply adjustment</button></form>' +
+        '<h3 style="margin-top:12px">Delete account</h3><p class="muted">Permanently removes this account from Auth and Firestore. Past transactions stay in the records.</p><button class="btn btn-danger btn-block" id="delAcc">Delete account</button>' +
         '<h3 style="margin-top:12px">Last transactions</h3>' + j.data.transactions.map(function (t) { return '<div class="kv"><span>' + E(t.type + ' ' + tk(t.amount)) + '</span>' + st(t.status) + '</div>'; }).join('') });
       m.el.querySelector('#stf').addEventListener('submit', function (e) { e.preventDefault(); var s = e.submitter ? e.submitter.getAttribute('data-s') : 'disabled';
         AF.api('admin/user-status.php', { uid: uid, status: s, reason: AF.form(e.target).reason }, { ok: true }).then(function (r) { if (r.success) { m.close(); } }); });
       m.el.querySelector('#adj').addEventListener('submit', function (e) { e.preventDefault(); var d = AF.form(e.target); d.uid = uid;
         AF.api('admin/adjust-balance.php', d, { ok: true }).then(function (r) { if (r.success) { m.close(); } }); });
+      m.el.querySelector('#delAcc').addEventListener('click', function () {
+        var c = AF.modal({ title: 'Delete account?', html: '<p><b>' + E(u.fullName) + '</b> · ' + E(u.email) + '</p>'
+          + '<p class="muted">This permanently deletes the account and its balance from Auth and Firestore. Past transactions stay in the records for audit. This cannot be undone.</p>'
+          + '<form id="delf"><label class="field"><div class="input"><input name="password" type="password" placeholder="Your password" autocomplete="current-password"></div></label>'
+          + '<div style="display:flex;gap:10px"><button class="btn btn-danger" style="flex:1">Delete</button><button class="btn btn-ghost" type="button" data-cancel style="flex:1">Cancel</button></div></form>' });
+        c.el.querySelector('[data-cancel]').addEventListener('click', function () { c.close(); });
+        c.el.querySelector('#delf').addEventListener('submit', function (e) { e.preventDefault();
+          AF.api('admin/user-delete.php', { uid: uid, password: AF.form(e.target).password }, { ok: true }).then(function (r) { if (r.success) { c.close(); m.close(); if (onDone) { onDone(); } } }); });
+      });
     });
   }
 

@@ -5,6 +5,7 @@ namespace App\Services;
 
 use App\Core\ApiException;
 use App\Core\Firebase;
+use App\Core\Logger;
 use App\Core\Money;
 use App\Core\RateLimit;
 use App\Core\Settings;
@@ -268,6 +269,52 @@ final class AdminService
                        'createdAtMs' => is_object($c) && method_exists($c, 'get') ? $c->get()->getTimestamp() * 1000 : 0];
         }
         return ['OK', ['items' => $rows]];
+    }
+
+    /** Delete every doc in a user-scoped collection. Returns how many were deleted. */
+    private static function deleteUserDocs(string $col, string $uid): int
+    {
+        $n = 0;
+        foreach (self::db()->collection($col)->where('userId', '=', $uid)->limit(500)->documents() as $d) {
+            $d->reference()->delete(); $n++;
+        }
+        return $n;
+    }
+
+    /**
+     * Permanently delete a user account from Firebase Auth AND Firestore.
+     * Refuses self-delete and deleting another admin. The admin's own
+     * password must be re-entered first. Transactions + ledger are NEVER
+     * deleted — they are the financial audit trail.
+     */
+    public static function deleteUser(array $admin, array $in): array
+    {
+        $uid = self::s($in, 'uid', 128);
+        if ($uid === $admin['uid']) { throw new ApiException('FORBIDDEN', 403); }
+        $ref = self::db()->collection('users')->document($uid);
+        $s = $ref->snapshot();
+        if ($uid === '' || !$s->exists()) { throw new ApiException('NOT_FOUND', 404); }
+        if (AdminGuard::adminDoc($uid) !== null) { throw new ApiException('FORBIDDEN', 403); }
+        $targetEmail = $s->data()['email'] ?? '';
+        AuthService::verifyPassword($admin['uid'], $admin['email'], is_string($in['password'] ?? null) ? $in['password'] : '');
+        // Revoke access first, so the account is dead even if a later step fails.
+        try { Firebase::auth()->revokeRefreshTokens($uid); } catch (\Throwable) {}
+        AuthService::revokeAllSessions($uid);
+        // Delete the Auth user; keep going with Firestore cleanup even if the
+        // Auth user is already gone (a leftover Auth user with no user doc
+        // cannot log in).
+        $authDeleted = false;
+        try { Firebase::auth()->deleteUser($uid); $authDeleted = true; }
+        catch (\Throwable $e) { Logger::error('admin.user_delete_auth', ['uid' => $uid, 'e' => $e->getMessage()]); }
+        $ref->delete();
+        self::db()->collection('wallets')->document($uid)->delete();
+        $n1 = self::deleteUserDocs('saved_numbers', $uid);
+        $n2 = self::deleteUserDocs('notifications', $uid);
+        $n3 = self::deleteUserDocs('promo_redemptions', $uid);
+        AuditLog::log($admin['uid'], 'admin.user_deleted', "users/{$uid}", ['email' => $targetEmail, 'authDeleted' => $authDeleted,
+                       'savedNumbers' => $n1, 'notifications' => $n2, 'redemptions' => $n3]);
+        return ['USER_DELETED', ['deleted' => ['auth' => $authDeleted, 'user' => true, 'wallet' => true,
+                       'savedNumbers' => $n1, 'notifications' => $n2, 'redemptions' => $n3]]];
     }
 
     /** Balance adjustment: 'balance' permission + reason + admin password re-entry + audit log + ledger entry. */

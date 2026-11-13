@@ -88,6 +88,7 @@ return [
     'SETTINGS_SAVED' => 'সেটিংস সংরক্ষিত হয়েছে।',
     'USER_STATUS_UPDATED' => 'ব্যবহারকারীর অবস্থা পরিবর্তন হয়েছে।',
     'BALANCE_ADJUSTED' => 'ব্যালেন্স সমন্বয় হয়েছে।',
+    'USER_DELETED' => 'ব্যবহারকারীর অ্যাকাউন্ট মুছে ফেলা হয়েছে।',
     'INVALID_AMOUNT' => 'পরিমাণ সঠিক নয়।',
     'AMOUNT_OUT_OF_RANGE' => 'পরিমাণ অনুমোদিত সীমার বাইরে।',
     'INVALID_METHOD' => 'bKash অথবা Nagad নির্বাচন করুন।',

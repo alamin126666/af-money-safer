@@ -230,7 +230,7 @@
     }
     run('');
     document.getElementById('spaQ').addEventListener('submit', function (e) { e.preventDefault(); run(AF.form(e.target).q); });
-    document.getElementById('spaRes').addEventListener('click', function (e) { var b = e.target.closest('[data-u]'); if (b) { A.userModal(b.getAttribute('data-u')); } });
+    document.getElementById('spaRes').addEventListener('click', function (e) { var b = e.target.closest('[data-u]'); if (b) { A.userModal(b.getAttribute('data-u'), function () { run(AF.form(document.getElementById('spaQ')).q); }); } });
   }
 
   function vTransactions() {
